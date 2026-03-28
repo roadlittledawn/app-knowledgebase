@@ -1,26 +1,259 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/**
+ * Theme CSS Custom Properties
+ *
+ * Requirements:
+ * - 12.5: Define CSS custom properties for the site palette in both dark and light variants
+ * - 12.6: Reference CSS tokens for all colors (no hardcoded color values in site UI)
+ *
+ * All colors are defined as CSS custom properties (tokens) and should be referenced
+ * throughout the application instead of hardcoded values.
+ */
+
+/* Dark theme (default) - Requirement 12.1 */
+:root,
+.dark {
+  /* Background colors */
+  --color-background: #0a0a0a;
+  --color-background-secondary: #141414;
+  --color-background-tertiary: #1a1a1a;
+
+  /* Surface colors (cards, panels, etc.) */
+  --color-surface: #1a1a1a;
+  --color-surface-hover: #252525;
+  --color-surface-active: #2a2a2a;
+
+  /* Border colors */
+  --color-border: #2a2a2a;
+  --color-border-hover: #3a3a3a;
+  --color-border-focus: #4a4a4a;
+
+  /* Text colors */
+  --color-foreground: #ededed;
+  --color-foreground-secondary: #a1a1a1;
+  --color-foreground-muted: #6b6b6b;
+
+  /* Primary accent colors */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary accent colors */
+  --color-secondary: #6366f1;
+  --color-secondary-hover: #4f46e5;
+  --color-secondary-foreground: #ffffff;
+
+  /* Success colors */
+  --color-success: #22c55e;
+  --color-success-hover: #16a34a;
+  --color-success-foreground: #ffffff;
+  --color-success-background: rgba(34, 197, 94, 0.1);
+
+  /* Warning colors */
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-foreground: #000000;
+  --color-warning-background: rgba(245, 158, 11, 0.1);
+
+  /* Error/Danger colors */
+  --color-error: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-error-foreground: #ffffff;
+  --color-error-background: rgba(239, 68, 68, 0.1);
+
+  /* Info colors */
+  --color-info: #06b6d4;
+  --color-info-hover: #0891b2;
+  --color-info-foreground: #ffffff;
+  --color-info-background: rgba(6, 182, 212, 0.1);
+
+  /* Focus ring */
+  --color-ring: #3b82f6;
+  --color-ring-offset: #0a0a0a;
+
+  /* Input colors */
+  --color-input: #1a1a1a;
+  --color-input-border: #2a2a2a;
+  --color-input-placeholder: #6b6b6b;
+
+  /* Code/syntax highlighting background */
+  --color-code-background: #1e1e1e;
+  --color-code-border: #2a2a2a;
+
+  /* Scrollbar colors */
+  --color-scrollbar-track: #1a1a1a;
+  --color-scrollbar-thumb: #3a3a3a;
+  --color-scrollbar-thumb-hover: #4a4a4a;
+
+  /* Shadow colors */
+  --shadow-color: rgba(0, 0, 0, 0.5);
+
+  /* Color scheme for native elements */
+  color-scheme: dark;
 }
 
+/* Light theme */
+.light {
+  /* Background colors */
+  --color-background: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-background-tertiary: #f3f4f6;
+
+  /* Surface colors (cards, panels, etc.) */
+  --color-surface: #ffffff;
+  --color-surface-hover: #f3f4f6;
+  --color-surface-active: #e5e7eb;
+
+  /* Border colors */
+  --color-border: #e5e7eb;
+  --color-border-hover: #d1d5db;
+  --color-border-focus: #9ca3af;
+
+  /* Text colors */
+  --color-foreground: #171717;
+  --color-foreground-secondary: #525252;
+  --color-foreground-muted: #9ca3af;
+
+  /* Primary accent colors */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary accent colors */
+  --color-secondary: #4f46e5;
+  --color-secondary-hover: #4338ca;
+  --color-secondary-foreground: #ffffff;
+
+  /* Success colors */
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-foreground: #ffffff;
+  --color-success-background: rgba(22, 163, 74, 0.1);
+
+  /* Warning colors */
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-foreground: #000000;
+  --color-warning-background: rgba(217, 119, 6, 0.1);
+
+  /* Error/Danger colors */
+  --color-error: #dc2626;
+  --color-error-hover: #b91c1c;
+  --color-error-foreground: #ffffff;
+  --color-error-background: rgba(220, 38, 38, 0.1);
+
+  /* Info colors */
+  --color-info: #0891b2;
+  --color-info-hover: #0e7490;
+  --color-info-foreground: #ffffff;
+  --color-info-background: rgba(8, 145, 178, 0.1);
+
+  /* Focus ring */
+  --color-ring: #2563eb;
+  --color-ring-offset: #ffffff;
+
+  /* Input colors */
+  --color-input: #ffffff;
+  --color-input-border: #d1d5db;
+  --color-input-placeholder: #9ca3af;
+
+  /* Code/syntax highlighting background */
+  --color-code-background: #f8f8f8;
+  --color-code-border: #e5e7eb;
+
+  /* Scrollbar colors */
+  --color-scrollbar-track: #f3f4f6;
+  --color-scrollbar-thumb: #d1d5db;
+  --color-scrollbar-thumb-hover: #9ca3af;
+
+  /* Shadow colors */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+
+  /* Color scheme for native elements */
+  color-scheme: light;
+}
+
+/* Tailwind theme integration */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base styles using CSS tokens (Requirement 12.6) */
+html {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+/* Link styles using tokens */
+a {
+  color: var(--color-primary);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Code block styles using tokens */
+code {
+  background-color: var(--color-code-background);
+  border: 1px solid var(--color-code-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.25rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875em;
+}
+
+pre {
+  background-color: var(--color-code-background);
+  border: 1px solid var(--color-code-border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+pre code {
+  background-color: transparent;
+  border: none;
+  padding: 0;
 }

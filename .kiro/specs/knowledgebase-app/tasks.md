@@ -37,7 +37,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 6: Slug URL-Safety**
     - **Validates: Requirements 2.5**
 
-  - [-] 1.6 Implement authentication system
+  - [x] 1.6 Implement authentication system
     - Create `src/lib/auth/jwt.ts` with sign/verify functions using AUTH_SECRET
     - Create `src/lib/auth/password.ts` with bcryptjs verification
     - Create `src/app/api/auth/login/route.ts` POST handler
@@ -51,7 +51,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 3: Unauthenticated Access Protection**
     - **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5**
 
-  - [ ] 1.8 Implement theme system with dark mode default
+  - [x] 1.8 Implement theme system with dark mode default
     - Create `src/lib/theme/theme-script.ts` for pre-paint theme detection
     - Create `src/components/ThemeProvider.tsx` context provider
     - Create `src/components/ThemeToggle.tsx` component
@@ -63,17 +63,17 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 44: Theme Preference Round-Trip**
     - **Validates: Requirements 12.4**
 
-  - [ ] 1.10 Create login page UI
+  - [x] 1.10 Create login page UI
     - Create `src/app/login/page.tsx` with login form
     - Handle form submission and error display
     - Redirect to browse on successful login
     - _Requirements: 1.1, 1.2_
 
-- [ ] 2. Checkpoint - Foundation Complete
+- [x] 2. Checkpoint - Foundation Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Category Management System
-  - [ ] 3.1 Implement Category CRUD API routes
+- [x] 3. Category Management System
+  - [x] 3.1 Implement Category CRUD API routes
     - Create `src/app/api/categories/route.ts` GET (list) and POST (create)
     - Create `src/app/api/categories/[id]/route.ts` GET, PUT, DELETE
     - Create `src/app/api/categories/tree/route.ts` GET for full tree
@@ -81,7 +81,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Implement deletion protection when entries reference category
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9_
 
-  - [ ] 3.2 Implement Category tree building logic
+  - [x] 3.2 Implement Category tree building logic
     - Create `src/lib/db/queries/categories.ts` with buildTree function
     - Implement getCategoryPath for breadcrumb generation
     - Include entry counts in tree nodes
