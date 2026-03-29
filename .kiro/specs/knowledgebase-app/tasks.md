@@ -102,7 +102,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Auto-generate URL-safe slugs with uniqueness check
     - _Requirements: 2.1, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12_
 
-  - [ ] 4.2 Implement Pinecone vector synchronization
+  - [x] 4.2 Implement Pinecone vector synchronization
     - Create `src/lib/pinecone/client.ts` with connection setup
     - Create `src/lib/pinecone/sync.ts` with upsert/delete functions
     - Sync on publish, remove on unpublish/delete
@@ -126,7 +126,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 11: Entry Filter Accuracy**
     - **Validates: Requirements 2.10**
 
-- [ ] 5. Checkpoint - Core Data Layer Complete
+- [-] 5. Checkpoint - Core Data Layer Complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Migration Script

@@ -12,6 +12,7 @@ import { Category } from '@/lib/db/models/Category';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { EntryDocument } from '@/lib/db/models/Entry';
+import { upsertEntryVector, isPineconeConfigured } from '@/lib/pinecone';
 
 interface EntriesListResponse {
   entries: Omit<IEntry, 'body'>[];
@@ -352,7 +353,20 @@ export async function POST(
 
     await entry.save();
 
-    // TODO: Sync to Pinecone if status is 'published' (Task 4.2)
+    // Sync to Pinecone if status is 'published'
+    // Validates: Requirement 2.2 - Sync on publish
+    if (entry.status === 'published' && isPineconeConfigured()) {
+      try {
+        const transformedEntry = transformEntry(entry.toObject());
+        const pineconeId = await upsertEntryVector(transformedEntry);
+        // Update the entry with the pineconeId
+        entry.pineconeId = pineconeId;
+        await entry.save();
+      } catch (pineconeError) {
+        // Log error but don't fail the request - entry is saved
+        console.error('Failed to sync entry to Pinecone:', pineconeError);
+      }
+    }
 
     return NextResponse.json({ entry: transformEntry(entry.toObject()) }, { status: 201 });
   } catch (error) {
