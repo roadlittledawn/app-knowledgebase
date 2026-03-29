@@ -93,8 +93,8 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 12c: Category Deletion Protection**
     - **Validates: Requirements 3.1, 3.4, 3.8, 4.1**
 
-- [ ] 4. Entry Management System
-  - [ ] 4.1 Implement Entry CRUD API routes
+- [-] 4. Entry Management System
+  - [x] 4.1 Implement Entry CRUD API routes
     - Create `src/app/api/entries/route.ts` GET (list with filters) and POST (create)
     - Create `src/app/api/entries/[id]/route.ts` GET, PUT, DELETE
     - Implement visibility filtering based on auth state
