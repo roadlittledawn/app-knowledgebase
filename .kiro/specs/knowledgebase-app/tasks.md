@@ -421,8 +421,8 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 34: Template Pre-fill Accuracy**
     - **Validates: Requirements 9.7**
 
-- [ ] 19. Entry Metadata Display
-  - [ ] 19.1 Enhance entry detail view with full metadata
+- [x] 19. Entry Metadata Display
+  - [x] 19.1 Enhance entry detail view with full metadata
     - Display all frontmatter fields in entry detail
     - Render related entries as clickable links
     - Render external resources with titles and URLs
