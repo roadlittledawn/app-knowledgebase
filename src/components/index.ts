@@ -19,3 +19,6 @@ export { ExternalResources } from './ExternalResources';
 // Search components
 export { SearchBar } from './SearchBar';
 export { SearchResults } from './SearchResults';
+
+// Filter components
+export { TagFilter } from './TagFilter';

@@ -243,13 +243,13 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Integrate search into browse page
     - _Requirements: 5.1_
 
-- [ ] 11. Tags and Topics API
-  - [ ] 11.1 Implement tags/topics/languages aggregation API
+- [x] 11. Tags and Topics API
+  - [x] 11.1 Implement tags/topics/languages aggregation API
     - Create `src/app/api/tags/route.ts` GET handler
     - Aggregate unique values from all entries
     - _Requirements: 13.1, 13.2, 13.3_
 
-  - [ ] 11.2 Create TagFilter component
+  - [x] 11.2 Create TagFilter component
     - Create `src/components/TagFilter.tsx` multi-select component
     - Integrate with browse page filtering
     - _Requirements: 13.4_

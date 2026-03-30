@@ -144,11 +144,11 @@ export async function GET(
     const authenticated = await isAuthenticated();
     const searchParams = request.nextUrl.searchParams;
 
-    // Parse query parameters
+    // Parse query parameters - support multiple values for filters
     const categoryId = searchParams.get('categoryId');
-    const tag = searchParams.get('tag');
-    const topic = searchParams.get('topic');
-    const language = searchParams.get('language');
+    const tags = searchParams.getAll('tag');
+    const topics = searchParams.getAll('topic');
+    const languages = searchParams.getAll('language');
     const status = searchParams.get('status') as 'draft' | 'published' | null;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
@@ -162,14 +162,17 @@ export async function GET(
     if (categoryId) {
       filter.categoryId = categoryId;
     }
-    if (tag) {
-      filter['frontmatter.tags'] = tag;
+    // Support multiple tags - entry must have ALL specified tags
+    if (tags.length > 0) {
+      filter['frontmatter.tags'] = { $all: tags };
     }
-    if (topic) {
-      filter['frontmatter.topics'] = topic;
+    // Support multiple topics - entry must have ALL specified topics
+    if (topics.length > 0) {
+      filter['frontmatter.topics'] = { $all: topics };
     }
-    if (language) {
-      filter['frontmatter.languages'] = language;
+    // Support multiple languages - entry must have ALL specified languages
+    if (languages.length > 0) {
+      filter['frontmatter.languages'] = { $all: languages };
     }
     // Only allow status filter for authenticated users
     if (status && authenticated) {

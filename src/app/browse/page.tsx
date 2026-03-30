@@ -18,9 +18,16 @@ import { EntryCard } from '@/components/EntryCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
+import { TagFilter } from '@/components/TagFilter';
 import type { CategoryTreeNode } from '@/types/category';
 import type { IEntry } from '@/types/entry';
 import type { SearchResultSource } from '@/lib/search/merge';
+
+interface TagsResponse {
+  tags: string[];
+  topics: string[];
+  languages: string[];
+}
 
 interface EntriesResponse {
   entries: Omit<IEntry, 'body'>[];
@@ -60,6 +67,14 @@ export default function BrowsePage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
 
+  // Filter state
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+
   // Fetch category tree
   useEffect(() => {
     async function fetchTree() {
@@ -77,7 +92,24 @@ export default function BrowsePage() {
     fetchTree();
   }, []);
 
-  // Fetch entries when category or page changes
+  // Fetch available tags, topics, and languages
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const res = await fetch('/api/tags');
+        if (!res.ok) throw new Error('Failed to fetch tags');
+        const data: TagsResponse = await res.json();
+        setAvailableTags(data.tags);
+        setAvailableTopics(data.topics);
+        setAvailableLanguages(data.languages);
+      } catch (err) {
+        console.error('Failed to load tags:', err);
+      }
+    }
+    fetchTags();
+  }, []);
+
+  // Fetch entries when category, page, or filters change
   const fetchEntries = useCallback(async () => {
     setEntriesLoading(true);
     try {
@@ -85,6 +117,10 @@ export default function BrowsePage() {
       if (selectedCategoryId) {
         params.set('categoryId', selectedCategoryId);
       }
+      // Add filter parameters
+      selectedTags.forEach((tag) => params.append('tag', tag));
+      selectedTopics.forEach((topic) => params.append('topic', topic));
+      selectedLanguages.forEach((language) => params.append('language', language));
       params.set('page', page.toString());
       params.set('limit', '20');
 
@@ -99,7 +135,7 @@ export default function BrowsePage() {
     } finally {
       setEntriesLoading(false);
     }
-  }, [selectedCategoryId, page]);
+  }, [selectedCategoryId, page, selectedTags, selectedTopics, selectedLanguages]);
 
   useEffect(() => {
     fetchEntries();
@@ -114,6 +150,30 @@ export default function BrowsePage() {
     setSearchResults([]);
     setSearchError(null);
   };
+
+  // Clear all filters
+  const handleClearFilters = useCallback(() => {
+    setSelectedTags([]);
+    setSelectedTopics([]);
+    setSelectedLanguages([]);
+    setPage(1);
+  }, []);
+
+  // Handle filter changes - reset page when filters change
+  const handleTagsChange = useCallback((tags: string[]) => {
+    setSelectedTags(tags);
+    setPage(1);
+  }, []);
+
+  const handleTopicsChange = useCallback((topics: string[]) => {
+    setSelectedTopics(topics);
+    setPage(1);
+  }, []);
+
+  const handleLanguagesChange = useCallback((languages: string[]) => {
+    setSelectedLanguages(languages);
+    setPage(1);
+  }, []);
 
   // Handle search
   const handleSearch = useCallback(async (query: string) => {
@@ -219,12 +279,28 @@ export default function BrowsePage() {
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-6 py-8">
             {/* Search bar */}
-            <div className="mb-6">
+            <div className="mb-4">
               <SearchBar
                 onSearch={handleSearch}
                 placeholder="Search entries..."
                 initialValue={searchQuery}
                 isLoading={isSearching}
+              />
+            </div>
+
+            {/* Tag filters */}
+            <div className="mb-6">
+              <TagFilter
+                tags={availableTags}
+                topics={availableTopics}
+                languages={availableLanguages}
+                selectedTags={selectedTags}
+                selectedTopics={selectedTopics}
+                selectedLanguages={selectedLanguages}
+                onTagsChange={handleTagsChange}
+                onTopicsChange={handleTopicsChange}
+                onLanguagesChange={handleLanguagesChange}
+                onClearAll={handleClearFilters}
               />
             </div>
 
