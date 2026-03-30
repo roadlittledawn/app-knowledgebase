@@ -101,9 +101,10 @@ export function extractFrontmatter(mdx: string): { frontmatter: EntryFrontmatter
     };
   }
 
-  const [, yamlContent, body] = match;
+  const yamlContent = match[1] ?? '';
+  const body = match[2] ?? '';
   return {
     frontmatter: parseFrontmatter(yamlContent),
-    body: body || '',
+    body,
   };
 }

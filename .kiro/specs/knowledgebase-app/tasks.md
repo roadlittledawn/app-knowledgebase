@@ -306,7 +306,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 23: Frontmatter YAML Round-Trip**
     - **Validates: Requirements 6.8**
 
-- [ ] 14. Checkpoint - Editor Complete
+- [x] 14. Checkpoint - Editor Complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. AI RAG Chat
