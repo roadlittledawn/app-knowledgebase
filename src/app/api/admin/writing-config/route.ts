@@ -99,7 +99,8 @@ export async function PUT(
     await connectToDatabase();
 
     // Build update object, excluding _id
-    const { _id, ...updateData } = body.config as Record<string, unknown>;
+    const { _id: _unusedId, ...updateData } = body.config as Record<string, unknown>;
+    void _unusedId; // Intentionally excluded from update
 
     // Upsert the singleton config (Requirement 9.2)
     const config = await WritingConfig.findOneAndUpdate(

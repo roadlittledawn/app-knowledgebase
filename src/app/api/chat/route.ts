@@ -37,16 +37,9 @@ interface SourceCitation {
 }
 
 /**
- * Approximate token count for text
- * Uses a simple heuristic of ~4 characters per token
- */
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
-
-/**
  * Truncate text to approximately the specified token limit
  * Requirement 7.3: Truncate context entries to ~1500 tokens
+ * Uses a simple heuristic of ~4 characters per token
  */
 function truncateToTokens(text: string, maxTokens: number): string {
   const estimatedChars = maxTokens * 4;
