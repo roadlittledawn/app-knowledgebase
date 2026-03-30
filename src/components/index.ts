@@ -36,3 +36,6 @@ export { ChatInput } from './ChatInput';
 export { MessageList, type ChatMessage } from './MessageList';
 export { MessageBubble } from './MessageBubble';
 export { SourceCitations, type SourceCitation } from './SourceCitations';
+
+// AI Writing components
+export { AIWritingPanel } from './AIWritingPanel';

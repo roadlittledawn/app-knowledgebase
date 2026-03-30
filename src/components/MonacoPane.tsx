@@ -7,10 +7,13 @@
  * Requirements:
  * - 6.9: Load Monaco dynamically with SSR disabled to prevent server-side rendering issues
  * - 6.10: Sync the Monaco theme with the application dark/light mode
+ * - 8.12: Support text selection tracking for AI writing assistance
  */
 
+import { useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import type { Theme } from '@/lib/theme';
+import type { editor } from 'monaco-editor';
 
 // Dynamically import Monaco editor with SSR disabled (Requirement 6.9)
 const Editor = dynamic(() => import('@monaco-editor/react').then((mod) => mod.default), {
@@ -27,6 +30,7 @@ interface MonacoPaneProps {
   onChange: (value: string) => void;
   theme: Theme;
   language?: string;
+  onSelectionChange?: (selectedText: string | undefined) => void;
 }
 
 /**
@@ -38,10 +42,39 @@ function getMonacoTheme(appTheme: Theme): string {
   return appTheme === 'dark' ? 'vs-dark' : 'light';
 }
 
-export function MonacoPane({ value, onChange, theme, language = 'mdx' }: MonacoPaneProps) {
+export function MonacoPane({
+  value,
+  onChange,
+  theme,
+  language = 'mdx',
+  onSelectionChange,
+}: MonacoPaneProps) {
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+
   const handleChange = (newValue: string | undefined) => {
     onChange(newValue ?? '');
   };
+
+  // Handle editor mount to set up selection tracking (Requirement 8.12)
+  const handleEditorDidMount = useCallback(
+    (editorInstance: editor.IStandaloneCodeEditor) => {
+      editorRef.current = editorInstance;
+
+      if (onSelectionChange) {
+        // Track selection changes
+        editorInstance.onDidChangeCursorSelection(() => {
+          const selection = editorInstance.getSelection();
+          if (selection && !selection.isEmpty()) {
+            const selectedText = editorInstance.getModel()?.getValueInRange(selection);
+            onSelectionChange(selectedText || undefined);
+          } else {
+            onSelectionChange(undefined);
+          }
+        });
+      }
+    },
+    [onSelectionChange]
+  );
 
   return (
     <Editor
@@ -50,6 +83,7 @@ export function MonacoPane({ value, onChange, theme, language = 'mdx' }: MonacoP
       value={value}
       theme={getMonacoTheme(theme)}
       onChange={handleChange}
+      onMount={handleEditorDidMount}
       options={{
         minimap: { enabled: false },
         fontSize: 14,

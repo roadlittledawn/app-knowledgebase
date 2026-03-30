@@ -10,11 +10,12 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Panel, Group, Separator } from 'react-resizable-panels';
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
+import { AIWritingPanel } from './AIWritingPanel';
 import { useTheme } from './ThemeProvider';
 
 interface EntryEditorProps {
@@ -54,6 +55,8 @@ export function EntryEditor({ entry, categories, onSave, onDelete }: EntryEditor
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selection, setSelection] = useState<string | undefined>(undefined);
+  const [showAIPanel, setShowAIPanel] = useState(true);
 
   // Handle save
   const handleSave = useCallback(async () => {
@@ -103,6 +106,26 @@ export function EntryEditor({ entry, categories, onSave, onDelete }: EntryEditor
       setFrontmatter((prev) => ({ ...prev, [field]: value }));
     },
     []
+  );
+
+  // Handle selection change from Monaco editor (Requirement 8.12)
+  const handleSelectionChange = useCallback((selectedText: string | undefined) => {
+    setSelection(selectedText);
+  }, []);
+
+  // Handle applying AI content to the editor (Requirement 8.11)
+  const handleApplyAIContent = useCallback(
+    (content: string) => {
+      if (selection) {
+        // Replace selection with AI content
+        setBody((prev) => prev.replace(selection, content));
+        setSelection(undefined);
+      } else {
+        // Append AI content to the end
+        setBody((prev) => prev + '\n\n' + content);
+      }
+    },
+    [selection]
   );
 
   return (
@@ -165,15 +188,31 @@ export function EntryEditor({ entry, categories, onSave, onDelete }: EntryEditor
             >
               {isSaving ? 'Saving...' : 'Save'}
             </button>
+
+            {/* AI Panel toggle */}
+            <button
+              onClick={() => setShowAIPanel((prev) => !prev)}
+              className={`
+                px-3 py-1.5 text-sm font-medium rounded-md transition-colors
+                ${
+                  showAIPanel
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }
+              `}
+              title={showAIPanel ? 'Hide AI Assistant' : 'Show AI Assistant'}
+            >
+              🤖 AI
+            </button>
           </div>
         </div>
       </div>
 
       {/* Split Layout */}
       <div className="flex-1 min-h-0">
-        <Group orientation="horizontal" className="h-full">
+        <PanelGroup orientation="horizontal" className="h-full">
           {/* Left Panel: Frontmatter Form */}
-          <Panel defaultSize={25} minSize={15} maxSize={40}>
+          <Panel defaultSize={20} minSize={15} maxSize={35}>
             <div className="h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-background-secondary)]">
               <div className="p-4 space-y-4">
                 <h3 className="text-sm font-semibold text-[var(--color-foreground)] uppercase tracking-wider">
@@ -344,25 +383,30 @@ export function EntryEditor({ entry, categories, onSave, onDelete }: EntryEditor
             </div>
           </Panel>
 
-          <Separator className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
+          <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
 
           {/* Center Panel: Monaco Editor */}
-          <Panel defaultSize={40} minSize={25}>
+          <Panel defaultSize={showAIPanel ? 35 : 45} minSize={25}>
             <div className="h-full flex flex-col">
               <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
                 <span className="text-sm font-medium text-[var(--color-foreground)]">Editor</span>
               </div>
               <div className="flex-1 min-h-0">
-                {/* Monaco editor with theme sync (Requirements 6.9, 6.10) */}
-                <MonacoPane value={body} onChange={setBody} theme={theme} />
+                {/* Monaco editor with theme sync and selection tracking (Requirements 6.9, 6.10, 8.12) */}
+                <MonacoPane
+                  value={body}
+                  onChange={setBody}
+                  theme={theme}
+                  onSelectionChange={handleSelectionChange}
+                />
               </div>
             </div>
           </Panel>
 
-          <Separator className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
+          <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
 
           {/* Right Panel: Preview */}
-          <Panel defaultSize={35} minSize={20}>
+          <Panel defaultSize={showAIPanel ? 25 : 35} minSize={15}>
             <div className="h-full flex flex-col">
               <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
                 <span className="text-sm font-medium text-[var(--color-foreground)]">Preview</span>
@@ -373,7 +417,22 @@ export function EntryEditor({ entry, categories, onSave, onDelete }: EntryEditor
               </div>
             </div>
           </Panel>
-        </Group>
+
+          {/* AI Writing Panel (Requirements 8.9, 8.10, 8.11) */}
+          {showAIPanel && (
+            <>
+              <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
+              <Panel defaultSize={20} minSize={15} maxSize={35}>
+                <AIWritingPanel
+                  body={body}
+                  frontmatter={frontmatter}
+                  selection={selection}
+                  onApply={handleApplyAIContent}
+                />
+              </Panel>
+            </>
+          )}
+        </PanelGroup>
       </div>
     </div>
   );

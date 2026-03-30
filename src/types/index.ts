@@ -19,5 +19,13 @@ export type {
   UpdateCategoryInput,
 } from './category';
 
-// Future exports:
-// - writing-config.ts - Writing configuration types
+// Writing config types
+export type {
+  WritingSkill,
+  WritingTemplate,
+  AgentPersona,
+  WritingConfig,
+  GetWritingConfigResponse,
+  UpdateWritingConfigRequest,
+  UpdateWritingConfigResponse,
+} from './writing-config';

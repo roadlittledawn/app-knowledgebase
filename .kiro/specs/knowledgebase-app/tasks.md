@@ -335,8 +335,8 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 26: Chat Citation Completeness**
     - **Validates: Requirements 7.3, 7.4, 7.6**
 
-- [ ] 16. AI Writing Assistance
-  - [ ] 16.1 Create WritingConfig model and API
+- [x] 16. AI Writing Assistance
+  - [x] 16.1 Create WritingConfig model and API
     - Create `src/types/writing-config.ts` with interfaces
     - Create `src/lib/db/models/WritingConfig.ts` Mongoose schema
     - Create `src/app/api/admin/writing-config/route.ts` GET and PUT
@@ -348,7 +348,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 33: WritingConfig CRUD Consistency**
     - **Validates: Requirements 9.2, 9.5, 9.6**
 
-  - [ ] 16.3 Implement Writing Agent API with SSE streaming
+  - [x] 16.3 Implement Writing Agent API with SSE streaming
     - Create `src/app/api/ai/writing-agent/route.ts` POST handler with SSE
     - Set maxDuration to 300 seconds
     - Support researcher, writer, reviewer personas
@@ -367,7 +367,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 31: Writing Agent Selection Context**
     - **Validates: Requirements 8.1, 8.3, 8.6, 8.7, 8.12**
 
-  - [ ] 16.5 Create AI Writing Panel UI
+  - [x] 16.5 Create AI Writing Panel UI
     - Create `src/components/AIWritingPanel.tsx` with action buttons
     - Include Review, Improve, Expand, Suggest Tags, Suggest Title actions
     - Create tabbed artifact view for multiple outputs
