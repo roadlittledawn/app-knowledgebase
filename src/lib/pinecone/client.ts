@@ -1,20 +1,21 @@
 /**
  * Pinecone client configuration and connection
  * Provides a singleton Pinecone client instance for vector operations
+ * Uses Pinecone's integrated inference with pinecone-sparse-english-v0 model
  */
 
 import { Pinecone } from '@pinecone-database/pinecone';
 
 /**
  * Pinecone index name for entry vectors
+ * Must be created with integrated embedding model: pinecone-sparse-english-v0
  */
-export const PINECONE_INDEX_NAME = 'knowledgebase-entries';
+export const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME;
 
 /**
- * Embedding dimension (depends on the embedding model used)
- * Using OpenAI text-embedding-3-small dimension by default
+ * Embedding model used by Pinecone for integrated inference
  */
-export const EMBEDDING_DIMENSION = 1536;
+export const PINECONE_EMBEDDING_MODEL = 'pinecone-sparse-english-v0';
 
 /**
  * Singleton Pinecone client instance
@@ -47,6 +48,7 @@ export function getPineconeClient(): Pinecone {
 
 /**
  * Get the Pinecone index for entry vectors
+ * Returns index configured for integrated embedding
  *
  * @returns Pinecone index instance
  */

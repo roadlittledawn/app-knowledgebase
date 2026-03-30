@@ -1,11 +1,17 @@
 /**
  * Pinecone vector synchronization utilities
  * Handles upserting and deleting entry vectors in Pinecone
+ * Uses Pinecone's integrated inference (pinecone-sparse-english-v0) for embeddings
  *
  * Validates: Requirements 2.2, 2.3, 2.4
  */
 
-import { getPineconeIndex, isPineconeConfigured } from './client';
+import {
+  getPineconeClient,
+  getPineconeIndex,
+  isPineconeConfigured,
+  PINECONE_INDEX_NAME,
+} from './client';
 import { getCategoryPath } from '@/lib/db/queries/categories';
 import type { IEntry } from '@/types/entry';
 
@@ -24,46 +30,7 @@ export interface PineconeEntryMetadata {
   languages: string[];
   status: string;
   isPrivate: boolean;
-  [key: string]: string | string[] | boolean; // Index signature for RecordMetadata compatibility
-}
-
-/**
- * Generate a placeholder embedding vector
- * In production, this should use an actual embedding model (e.g., OpenAI, Anthropic)
- *
- * TODO: Replace with actual embedding generation using Anthropic or OpenAI API
- *
- * @param text - Text to generate embedding for
- * @returns Embedding vector (placeholder zeros for now)
- */
-export async function generateEmbedding(text: string): Promise<number[]> {
-  // Placeholder: Return a zero vector of the expected dimension
-  // In production, call an embedding API here
-  // Example with OpenAI:
-  // const response = await openai.embeddings.create({
-  //   model: 'text-embedding-3-small',
-  //   input: text,
-  // });
-  // return response.data[0].embedding;
-
-  // For now, generate a deterministic placeholder based on text hash
-  // This allows testing without an embedding API
-  const dimension = 1536;
-  const vector = new Array(dimension).fill(0);
-
-  // Create a simple hash-based placeholder (not for production use)
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = (hash << 5) - hash + text.charCodeAt(i);
-    hash = hash & hash;
-  }
-
-  // Distribute the hash across the vector
-  for (let i = 0; i < dimension; i++) {
-    vector[i] = Math.sin(hash + i) * 0.1;
-  }
-
-  return vector;
+  [key: string]: string | string[] | boolean;
 }
 
 /**
@@ -107,8 +74,8 @@ export function buildPineconeMetadata(entry: IEntry, categoryPath: string): Pine
 }
 
 /**
- * Upsert an entry vector to Pinecone
- * Called when an entry is published or updated while published
+ * Upsert an entry vector to Pinecone using integrated inference
+ * Pinecone generates embeddings server-side using pinecone-sparse-english-v0
  *
  * Validates: Requirement 2.2 - Sync on publish
  *
@@ -122,28 +89,26 @@ export async function upsertEntryVector(entry: IEntry): Promise<string> {
     return entry._id;
   }
 
-  const index = getPineconeIndex();
+  const client = getPineconeClient();
+  const index = client.index(PINECONE_INDEX_NAME);
 
   // Get category path for metadata
   const categoryPath = await getCategoryPath(entry.categoryId);
 
-  // Generate embedding from entry content
+  // Build text content for embedding
   const embeddingText = buildEmbeddingText(entry);
-  const embedding = await generateEmbedding(embeddingText);
 
   // Build metadata
   const metadata = buildPineconeMetadata(entry, categoryPath);
 
-  // Upsert the vector
-  await index.upsert({
-    records: [
-      {
-        id: entry._id,
-        values: embedding,
-        metadata,
-      },
-    ],
-  });
+  // Upsert using integrated inference - Pinecone generates embeddings
+  await index.upsertRecords([
+    {
+      _id: entry._id,
+      text: embeddingText,
+      ...metadata,
+    },
+  ]);
 
   return entry._id;
 }
@@ -164,8 +129,7 @@ export async function deleteEntryVector(entryId: string): Promise<void> {
   }
 
   const index = getPineconeIndex();
-
-  await index.deleteOne({ id: entryId });
+  await index.deleteOne(entryId);
 }
 
 /**
@@ -182,20 +146,17 @@ export async function syncEntryVector(
   previousStatus?: 'draft' | 'published'
 ): Promise<string | undefined> {
   if (entry.status === 'published') {
-    // Entry is published, upsert the vector
     return await upsertEntryVector(entry);
   } else if (previousStatus === 'published') {
-    // Entry was published but is now draft, delete the vector
     await deleteEntryVector(entry._id);
     return undefined;
   }
 
-  // Entry is draft and was draft, no action needed
   return undefined;
 }
 
 /**
- * Batch upsert multiple entry vectors
+ * Batch upsert multiple entry vectors using integrated inference
  * Useful for migration or bulk operations
  *
  * @param entries - Entries to upsert
@@ -207,8 +168,9 @@ export async function batchUpsertEntryVectors(entries: IEntry[]): Promise<string
     return entries.map((e) => e._id);
   }
 
-  const index = getPineconeIndex();
-  const vectors = [];
+  const client = getPineconeClient();
+  const index = client.index(PINECONE_INDEX_NAME);
+  const records: Array<{ _id: string; text: string; [key: string]: unknown }> = [];
 
   for (const entry of entries) {
     if (entry.status !== 'published') {
@@ -217,26 +179,25 @@ export async function batchUpsertEntryVectors(entries: IEntry[]): Promise<string
 
     const categoryPath = await getCategoryPath(entry.categoryId);
     const embeddingText = buildEmbeddingText(entry);
-    const embedding = await generateEmbedding(embeddingText);
     const metadata = buildPineconeMetadata(entry, categoryPath);
 
-    vectors.push({
-      id: entry._id,
-      values: embedding,
-      metadata,
+    records.push({
+      _id: entry._id,
+      text: embeddingText,
+      ...metadata,
     });
   }
 
-  if (vectors.length > 0) {
-    // Pinecone recommends batches of 100 vectors
+  if (records.length > 0) {
+    // Pinecone recommends batches of 100 records
     const batchSize = 100;
-    for (let i = 0; i < vectors.length; i += batchSize) {
-      const batch = vectors.slice(i, i + batchSize);
-      await index.upsert({ records: batch });
+    for (let i = 0; i < records.length; i += batchSize) {
+      const batch = records.slice(i, i + batchSize);
+      await index.upsertRecords(batch);
     }
   }
 
-  return vectors.map((v) => v.id);
+  return records.map((r) => r._id);
 }
 
 /**

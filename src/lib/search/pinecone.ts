@@ -1,12 +1,16 @@
 /**
  * Pinecone semantic search utilities
- * Provides vector-based semantic search using embeddings
+ * Uses Pinecone's integrated inference with pinecone-sparse-english-v0 model
  *
  * Requirements: 5.1 - Query Pinecone_Index for semantic search
  */
 
-import { getPineconeIndex, isPineconeConfigured } from '@/lib/pinecone/client';
-import { generateEmbedding, type PineconeEntryMetadata } from '@/lib/pinecone/sync';
+import {
+  getPineconeClient,
+  isPineconeConfigured,
+  PINECONE_INDEX_NAME,
+} from '@/lib/pinecone/client';
+import type { PineconeEntryMetadata } from '@/lib/pinecone/sync';
 import type { IEntry } from '@/types/entry';
 
 /**
@@ -72,11 +76,11 @@ function buildPineconeFilter(
 }
 
 /**
- * Perform Pinecone semantic search
- * Generates embedding for query and finds similar vectors
+ * Perform Pinecone semantic search using integrated inference
+ * Pinecone generates query embedding server-side using pinecone-sparse-english-v0
  *
  * @param options - Search options
- * @returns Array of search results with scores (cosine similarity 0-1)
+ * @returns Array of search results with scores
  */
 export async function searchPinecone(
   options: PineconeSearchOptions
@@ -88,26 +92,26 @@ export async function searchPinecone(
 
   const { query, limit = 20, ...filterOptions } = options;
 
-  // Generate embedding for the query
-  const queryEmbedding = await generateEmbedding(query);
+  const client = getPineconeClient();
+  const index = client.index(PINECONE_INDEX_NAME);
 
   // Build filter
   const filter = buildPineconeFilter(filterOptions);
 
-  // Query Pinecone
-  const index = getPineconeIndex();
-  const queryResponse = await index.query({
-    vector: queryEmbedding,
-    topK: limit,
-    filter,
-    includeMetadata: true,
+  // Search using integrated inference - Pinecone generates query embedding
+  const searchResponse = await index.searchRecords({
+    query: {
+      topK: limit,
+      inputs: { text: query },
+      filter,
+    },
   });
 
   // Transform results
-  return (queryResponse.matches || []).map((match) => ({
-    entryId: match.id,
-    score: match.score ?? 0,
-    metadata: match.metadata as PineconeEntryMetadata,
+  return (searchResponse.result?.hits || []).map((hit) => ({
+    entryId: hit._id,
+    score: hit._score ?? 0,
+    metadata: hit.fields as unknown as PineconeEntryMetadata,
   }));
 }
 
@@ -126,11 +130,11 @@ export function pineconeResultToEntry(result: PineconeSearchResult): Omit<IEntry
       topics: result.metadata.topics,
       tags: result.metadata.tags,
       languages: result.metadata.languages,
-      skillLevel: 3, // Default, not stored in Pinecone
-      needsHelp: false, // Default, not stored in Pinecone
+      skillLevel: 3,
+      needsHelp: false,
       isPrivate: result.metadata.isPrivate,
-      resources: [], // Not stored in Pinecone
-      relatedEntries: [], // Not stored in Pinecone
+      resources: [],
+      relatedEntries: [],
     },
     pineconeId: result.entryId,
     createdAt: new Date(),
