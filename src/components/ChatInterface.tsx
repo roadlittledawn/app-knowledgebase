@@ -13,12 +13,13 @@ import { useState, useCallback } from 'react';
 import { MessageList, type ChatMessage } from './MessageList';
 import { ChatInput } from './ChatInput';
 import { SourceCitations, type SourceCitation } from './SourceCitations';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface ChatInterfaceProps {
   initialMessages?: ChatMessage[];
 }
 
-export function ChatInterface({ initialMessages = [] }: ChatInterfaceProps) {
+function ChatInterfaceInner({ initialMessages = [] }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [streamingContent, setStreamingContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -171,6 +172,29 @@ export function ChatInterface({ initialMessages = [] }: ChatInterfaceProps) {
         <ChatInput onSubmit={handleSubmit} disabled={isLoading} />
       </div>
     </div>
+  );
+}
+
+export function ChatInterface(props: ChatInterfaceProps) {
+  return (
+    <ErrorBoundary
+      fallback={({ error, resetErrorBoundary }) => (
+        <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+          <h2 className="text-lg font-semibold text-[var(--color-error)] mb-2">Chat Error</h2>
+          <p className="text-[var(--color-foreground-secondary)] mb-4">
+            {error.message || 'Something went wrong with the chat interface'}
+          </p>
+          <button
+            onClick={resetErrorBoundary}
+            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:opacity-90 transition-opacity"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+    >
+      <ChatInterfaceInner {...props} />
+    </ErrorBoundary>
   );
 }
 

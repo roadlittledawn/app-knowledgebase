@@ -28,6 +28,57 @@ export {
   type Theme,
 } from './theme';
 
+// Error handling
+export {
+  AppError,
+  ValidationError,
+  NotFoundError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  DuplicateSlugError,
+  CategoryNotFoundError,
+  ParentNotFoundError,
+  InvalidIdError,
+  ReferenceConstraintError,
+  isAppError,
+} from './errors';
+
+// API utilities
+export {
+  handleError,
+  withErrorHandler,
+  createErrorResponse,
+  validateRequiredString,
+  validateSlugFormat,
+  validateNumberRange,
+  validateEnum,
+  validateObjectId,
+  validateResources,
+  type ErrorResponse,
+} from './api/error-handler';
+
+// Validation utilities
+export {
+  isValidObjectId,
+  validateSlug,
+  generateSlug,
+  generateUniqueEntrySlug,
+  validateEntrySlugUnique,
+  validateCategoryExists,
+  validateParentCategoryExists,
+  validateCategorySlugUnique,
+  validateEntryFrontmatter,
+  validateResources as validateResourcesArray,
+  validateEntryStatus,
+  validateCreateCategoryInput,
+  validateUpdateCategoryInput,
+  validateWritingSkill,
+  validateWritingTemplate,
+  validateAgentPersona,
+  validateWritingConfigUpdate,
+} from './api/validation';
+
 // Future exports:
 // - search/ - Search services
 // - mdx/ - MDX serialization

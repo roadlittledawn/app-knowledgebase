@@ -46,3 +46,17 @@ export { RecentEntries } from './RecentEntries';
 export { TopTagsChart } from './TopTagsChart';
 export { CategoryManager } from './CategoryManager';
 export { WritingConfigEditor } from './WritingConfigEditor';
+
+// Error handling components
+export {
+  ErrorBoundary,
+  CompactErrorBoundary,
+  MDXErrorBoundary,
+  withErrorBoundary,
+} from './ErrorBoundary';
+export {
+  ErrorFallback,
+  CompactErrorFallback,
+  MDXErrorFallback,
+  type ErrorFallbackProps,
+} from './ErrorFallback';

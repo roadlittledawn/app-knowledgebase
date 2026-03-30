@@ -1,6 +1,7 @@
 'use client';
 
 import { MDXRemote, type MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { MDXErrorBoundary } from '@/components/ErrorBoundary';
 import {
   Callout,
   Card,
@@ -42,5 +43,9 @@ interface MDXContentProps {
 }
 
 export function MDXContent({ source }: MDXContentProps) {
-  return <MDXRemote {...source} components={components} />;
+  return (
+    <MDXErrorBoundary resetKeys={[source]}>
+      <MDXRemote {...source} components={components} />
+    </MDXErrorBoundary>
+  );
 }

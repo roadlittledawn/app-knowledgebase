@@ -17,6 +17,7 @@ import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { useTheme } from './ThemeProvider';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
   entry?: IEntry; // undefined for new entries
@@ -38,7 +39,30 @@ const defaultFrontmatter: EntryFrontmatter = {
   relatedEntries: [],
 };
 
-export function EntryEditor({ entry, categories, onSave, onDelete }: EntryEditorProps) {
+export function EntryEditor(props: EntryEditorProps) {
+  return (
+    <ErrorBoundary
+      fallback={({ error, resetErrorBoundary }) => (
+        <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-[var(--color-background)]">
+          <h2 className="text-lg font-semibold text-[var(--color-error)] mb-2">Editor Error</h2>
+          <p className="text-[var(--color-foreground-secondary)] mb-4 max-w-md">
+            {error.message || 'Something went wrong with the editor'}
+          </p>
+          <button
+            onClick={resetErrorBoundary}
+            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:opacity-90 transition-opacity"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+    >
+      <EntryEditorInner {...props} />
+    </ErrorBoundary>
+  );
+}
+
+function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorProps) {
   // Get current theme for Monaco editor (Requirement 6.10)
   const { theme } = useTheme();
 
