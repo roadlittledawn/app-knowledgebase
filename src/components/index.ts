@@ -39,3 +39,10 @@ export { SourceCitations, type SourceCitation } from './SourceCitations';
 
 // AI Writing components
 export { AIWritingPanel } from './AIWritingPanel';
+
+// Admin components
+export { StatsPanel } from './StatsPanel';
+export { RecentEntries } from './RecentEntries';
+export { TopTagsChart } from './TopTagsChart';
+export { CategoryManager } from './CategoryManager';
+export { WritingConfigEditor } from './WritingConfigEditor';

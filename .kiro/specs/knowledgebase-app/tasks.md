@@ -381,8 +381,8 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
 - [x] 17. Checkpoint - AI Features Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 18. Admin Dashboard
-  - [ ] 18.1 Implement Admin Stats API
+- [x] 18. Admin Dashboard
+  - [x] 18.1 Implement Admin Stats API
     - Create `src/app/api/admin/stats/route.ts` GET handler
     - Calculate totalEntries, totalTopics, totalTags, needsHelpCount
     - Get recentlyCreated and recentlyUpdated entries
@@ -395,7 +395,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 36: Recent Entries Ordering**
     - **Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5**
 
-  - [ ] 18.3 Create Admin Dashboard UI
+  - [x] 18.3 Create Admin Dashboard UI
     - Create `src/app/admin/page.tsx` dashboard page
     - Create `src/components/StatsPanel.tsx` for counts display
     - Create `src/components/RecentEntries.tsx` for activity lists
@@ -403,13 +403,13 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Protect route for authenticated users only
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ] 18.4 Create CategoryManager component
+  - [x] 18.4 Create CategoryManager component
     - Create `src/components/CategoryManager.tsx` for admin category management
     - Support creating, renaming, reordering, and deleting categories
     - Display category tree with drag-and-drop reordering
     - _Requirements: 3.10_
 
-  - [ ] 18.5 Create WritingConfigEditor component
+  - [x] 18.5 Create WritingConfigEditor component
     - Create `src/components/WritingConfigEditor.tsx` with tabs
     - Create Prompts tab with Monaco editors for baseSystemPrompt and persona prompts
     - Create Style Guide tab with Monaco editor
