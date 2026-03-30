@@ -126,11 +126,11 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 11: Entry Filter Accuracy**
     - **Validates: Requirements 2.10**
 
-- [-] 5. Checkpoint - Core Data Layer Complete
+- [x] 5. Checkpoint - Core Data Layer Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Migration Script
-  - [ ] 6.1 Implement content migration script
+- [x] 6. Migration Script
+  - [x] 6.1 Implement content migration script
     - Create `scripts/migrate.ts` with gray-matter parsing
     - Derive category hierarchy from directory paths
     - Create Category documents with proper parentId references
@@ -141,7 +141,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Handle ai-agents directory with special topic tagging
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.10, 11.11_
 
-  - [ ] 6.2 Implement Pinecone vector creation during migration
+  - [x] 6.2 Implement Pinecone vector creation during migration
     - Generate embeddings for each entry
     - Upsert vectors with entry metadata
     - Update pineconeId field on entries
@@ -157,22 +157,22 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 43: Migration AI Agent Files Topic**
     - **Validates: Requirements 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10, 11.11**
 
-- [ ] 7. Browse UI and Entry Display
-  - [ ] 7.1 Create browse page layout with CategoryTree sidebar
+- [x] 7. Browse UI and Entry Display
+  - [x] 7.1 Create browse page layout with CategoryTree sidebar
     - Create `src/app/browse/page.tsx` with sidebar layout
     - Create `src/components/CategoryTree.tsx` hierarchical navigation
     - Display entry counts per category
     - Handle category selection state
     - _Requirements: 4.1, 4.2, 4.8_
 
-  - [ ] 7.2 Implement entry list and detail views
+  - [x] 7.2 Implement entry list and detail views
     - Create `src/components/EntryCard.tsx` for list items
     - Create `src/app/browse/[...slug]/page.tsx` for entry detail
     - Display entry metadata (title, topics, tags, languages, skillLevel)
     - Display related entries and external resources
     - _Requirements: 4.3, 4.4, 4.5, 4.6_
 
-  - [ ] 7.3 Implement breadcrumb navigation
+  - [x] 7.3 Implement breadcrumb navigation
     - Create `src/components/Breadcrumbs.tsx` component
     - Generate path from category hierarchy
     - _Requirements: 4.7_
@@ -183,13 +183,13 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 16: Breadcrumb Path Accuracy**
     - **Validates: Requirements 4.7**
 
-- [ ] 8. MDX Content Rendering
-  - [ ] 8.1 Set up MDX serialization with next-mdx-remote
+- [x] 8. MDX Content Rendering
+  - [x] 8.1 Set up MDX serialization with next-mdx-remote
     - Create `src/lib/mdx/serialize.ts` with serialization function
     - Configure Shiki for syntax highlighting
     - _Requirements: 15.1, 15.3_
 
-  - [ ] 8.2 Create DDS component mapping for MDX
+  - [x] 8.2 Create DDS component mapping for MDX
     - Create `src/components/mdx/` directory with component wrappers
     - Map Callout, Card, CardGrid, Heading, CodeBlock, Link, List, ListItem, Collapser, CollapserGroup, Grid, Column, Popover, Table, Tabs
     - Create CodePlayground component for iframe embeds
@@ -200,21 +200,21 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 47: CodePlayground Embed Support**
     - **Validates: Requirements 15.2, 15.4**
 
-- [ ] 9. Checkpoint - Browse and Content Display Complete
+- [x] 9. Checkpoint - Browse and Content Display Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Hybrid Search Implementation
-  - [ ] 10.1 Create Atlas Search index configuration
+- [x] 10. Hybrid Search Implementation
+  - [x] 10.1 Create Atlas Search index configuration
     - Document Atlas Search index JSON configuration
     - Create `src/lib/search/atlas.ts` with search query function
     - _Requirements: 17.5_
 
-  - [ ] 10.2 Implement Pinecone semantic search
+  - [x] 10.2 Implement Pinecone semantic search
     - Create `src/lib/search/pinecone.ts` with query function
     - Generate query embeddings
     - _Requirements: 5.1_
 
-  - [ ] 10.3 Implement search result merging
+  - [x] 10.3 Implement search result merging
     - Create `src/lib/search/merge.ts` with score normalization
     - Normalize Atlas scores to 0-1 range
     - Apply 50/50 weighting
@@ -222,7 +222,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Deduplicate by entry ID
     - _Requirements: 5.2, 5.3, 5.4, 5.5_
 
-  - [ ] 10.4 Create Search API route
+  - [x] 10.4 Create Search API route
     - Create `src/app/api/search/route.ts` GET handler
     - Support hybrid, atlas-only, and pinecone-only modes
     - Apply visibility filtering based on auth state
@@ -237,7 +237,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 20: Search Excerpt Presence**
     - **Validates: Requirements 5.2, 5.3, 5.4, 5.5, 5.8, 5.9**
 
-  - [ ] 10.6 Create search UI components
+  - [x] 10.6 Create search UI components
     - Create `src/components/SearchBar.tsx` with input and submit
     - Create `src/components/SearchResults.tsx` for result display
     - Integrate search into browse page

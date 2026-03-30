@@ -7,3 +7,15 @@
 // Theme components
 export { ThemeProvider, useTheme } from './ThemeProvider';
 export { ThemeToggle } from './ThemeToggle';
+
+// Browse components
+export { CategoryTree } from './CategoryTree';
+export { EntryCard } from './EntryCard';
+export { EntryMetadata } from './EntryMetadata';
+export { Breadcrumbs } from './Breadcrumbs';
+export { RelatedEntries } from './RelatedEntries';
+export { ExternalResources } from './ExternalResources';
+
+// Search components
+export { SearchBar } from './SearchBar';
+export { SearchResults } from './SearchResults';
