@@ -8,6 +8,9 @@
 export { ThemeProvider, useTheme } from './ThemeProvider';
 export { ThemeToggle } from './ThemeToggle';
 
+// Navigation components
+export { TopNav } from './TopNav';
+
 // Browse components
 export { CategoryTree } from './CategoryTree';
 export { EntryCard } from './EntryCard';

@@ -80,7 +80,8 @@ export class ConflictError extends AppError {
 export class DuplicateSlugError extends ConflictError {
   constructor(resource: string) {
     super(`A ${resource} with this slug already exists`, { field: 'slug' });
-    this.code = 'DUPLICATE_SLUG';
+    // Override code by using Object.defineProperty since it's readonly
+    Object.defineProperty(this, 'code', { value: 'DUPLICATE_SLUG', writable: false });
   }
 }
 
@@ -127,7 +128,8 @@ export class InvalidIdError extends AppError {
 export class ReferenceConstraintError extends ConflictError {
   constructor(resource: string, referencedBy: string) {
     super(`Cannot delete ${resource} because it is referenced by ${referencedBy}`);
-    this.code = 'REFERENCE_CONSTRAINT';
+    // Override code by using Object.defineProperty since it's readonly
+    Object.defineProperty(this, 'code', { value: 'REFERENCE_CONSTRAINT', writable: false });
   }
 }
 

@@ -14,7 +14,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { StatsPanel } from '@/components/StatsPanel';
 import { RecentEntries } from '@/components/RecentEntries';
 import { TopTagsChart } from '@/components/TopTagsChart';
@@ -125,7 +124,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="flex-1 bg-[var(--color-background)]">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -134,20 +133,6 @@ export default function AdminDashboard() {
             <p className="text-[var(--color-foreground-muted)] mt-1">
               Overview of your knowledgebase
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/browse"
-              className="px-4 py-2 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] transition-colors"
-            >
-              Browse
-            </Link>
-            <Link
-              href="/entries/new"
-              className="px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] transition-colors"
-            >
-              New Entry
-            </Link>
           </div>
         </div>
 

@@ -133,26 +133,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
   const relatedEntries = await getRelatedEntries(entry.frontmatter.relatedEntries);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-xl font-semibold text-[var(--color-foreground)]">
-              Knowledgebase
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/browse"
-                className="text-sm text-[var(--color-foreground-secondary)] hover:text-[var(--color-foreground)]"
-              >
-                Browse
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 flex flex-col">
       {/* Main content */}
       <main className="flex-1">
         <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

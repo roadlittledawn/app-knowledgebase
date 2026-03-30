@@ -13,7 +13,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { EntryEditor } from '@/components/EntryEditor';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import type { CategoryTreeNode } from '@/types/category';
 import type { IEntry } from '@/types/entry';
 
@@ -110,7 +109,7 @@ export default function EditEntryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
+      <div className="flex-1 flex items-center justify-center bg-[var(--color-background)]">
         <div className="animate-pulse text-[var(--color-foreground-muted)]">Loading...</div>
       </div>
     );
@@ -118,7 +117,7 @@ export default function EditEntryPage() {
 
   if (error || !entry) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
+      <div className="flex-1 flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
           <p className="text-[var(--color-error)] mb-4">{error || 'Entry not found'}</p>
           <Link href="/browse" className="text-[var(--color-primary)] hover:underline">
@@ -130,32 +129,30 @@ export default function EditEntryPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <header className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/browse"
-              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-            </Link>
-            <h1 className="text-lg font-semibold text-[var(--color-foreground)]">Edit Entry</h1>
-            <span className="text-sm text-[var(--color-foreground-muted)]">
-              {entry.frontmatter.title}
-            </span>
-          </div>
-          <ThemeToggle />
+    <div className="flex-1 flex flex-col">
+      {/* Sub-header with back button and entry title */}
+      <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="px-4 h-12 flex items-center gap-4">
+          <Link
+            href="/browse"
+            className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
+            aria-label="Back to browse"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+          </Link>
+          <h1 className="text-base font-medium text-[var(--color-foreground)]">Edit Entry</h1>
+          <span className="text-sm text-[var(--color-foreground-muted)] truncate">
+            {entry.frontmatter.title}
+          </span>
         </div>
-      </header>
+      </div>
 
       {/* Editor */}
       <div className="flex-1 min-h-0">

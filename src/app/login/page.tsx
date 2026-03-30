@@ -44,6 +44,7 @@ function LoginForm() {
       // Requirement 1.1: Redirect to browse page (or redirect param) on success
       const redirectTo = searchParams.get('redirect') || '/browse';
       router.push(redirectTo);
+      router.refresh(); // Refresh to update auth state in TopNav
     } catch {
       setError('An unexpected error occurred. Please try again.');
     } finally {
@@ -52,68 +53,27 @@ function LoginForm() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        backgroundColor: 'var(--color-background)',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '400px',
-          padding: '2rem',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: '8px',
-          border: '1px solid var(--color-border)',
-          boxShadow: '0 4px 6px var(--shadow-color)',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            color: 'var(--color-foreground)',
-          }}
-        >
-          Sign in to Knowledgebase
+    <div className="flex-1 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm p-6 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] shadow-lg">
+        <h1 className="text-xl font-semibold mb-6 text-center text-[var(--color-foreground)]">
+          Sign in
         </h1>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div
               role="alert"
               aria-live="polite"
-              style={{
-                padding: '0.75rem 1rem',
-                marginBottom: '1rem',
-                backgroundColor: 'var(--color-error-background)',
-                border: '1px solid var(--color-error)',
-                borderRadius: '6px',
-                color: 'var(--color-error)',
-                fontSize: '0.875rem',
-              }}
+              className="p-3 text-sm rounded-md bg-[var(--color-error-background)] border border-[var(--color-error)] text-[var(--color-error)]"
             >
               {error}
             </div>
           )}
 
-          <div style={{ marginBottom: '1rem' }}>
+          <div>
             <label
               htmlFor="username"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'var(--color-foreground)',
-              }}
+              className="block mb-1.5 text-sm font-medium text-[var(--color-foreground)]"
             >
               Username
             </label>
@@ -126,38 +86,15 @@ function LoginForm() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                fontSize: '1rem',
-                backgroundColor: 'var(--color-input)',
-                border: '1px solid var(--color-input-border)',
-                borderRadius: '6px',
-                color: 'var(--color-foreground)',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'var(--color-primary)';
-                e.target.style.boxShadow = '0 0 0 2px var(--color-ring)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'var(--color-input-border)';
-                e.target.style.boxShadow = 'none';
-              }}
+              className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-input)] border border-[var(--color-input-border)] text-[var(--color-foreground)] placeholder-[var(--color-input-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] focus:border-[var(--color-primary)] disabled:opacity-50"
+              placeholder="Enter your username"
             />
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div>
             <label
               htmlFor="password"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'var(--color-foreground)',
-              }}
+              className="block mb-1.5 text-sm font-medium text-[var(--color-foreground)]"
             >
               Password
             </label>
@@ -170,53 +107,15 @@ function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                fontSize: '1rem',
-                backgroundColor: 'var(--color-input)',
-                border: '1px solid var(--color-input-border)',
-                borderRadius: '6px',
-                color: 'var(--color-foreground)',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'var(--color-primary)';
-                e.target.style.boxShadow = '0 0 0 2px var(--color-ring)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'var(--color-input-border)';
-                e.target.style.boxShadow = 'none';
-              }}
+              className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-input)] border border-[var(--color-input-border)] text-[var(--color-foreground)] placeholder-[var(--color-input-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] focus:border-[var(--color-primary)] disabled:opacity-50"
+              placeholder="Enter your password"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              fontSize: '1rem',
-              fontWeight: 500,
-              backgroundColor: isLoading ? 'var(--color-foreground-muted)' : 'var(--color-primary)',
-              color: 'var(--color-primary-foreground)',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-              }
-            }}
+            className="w-full py-2.5 text-sm font-medium rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] focus:ring-offset-2 focus:ring-offset-[var(--color-background)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading ? 'Signing in...' : 'Sign in'}
           </button>
@@ -228,46 +127,12 @@ function LoginForm() {
 
 function LoginFormFallback() {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        backgroundColor: 'var(--color-background)',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '400px',
-          padding: '2rem',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: '8px',
-          border: '1px solid var(--color-border)',
-          boxShadow: '0 4px 6px var(--shadow-color)',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            color: 'var(--color-foreground)',
-          }}
-        >
-          Sign in to Knowledgebase
+    <div className="flex-1 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm p-6 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] shadow-lg">
+        <h1 className="text-xl font-semibold mb-6 text-center text-[var(--color-foreground)]">
+          Sign in
         </h1>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '2rem',
-            color: 'var(--color-foreground-secondary)',
-          }}
-        >
+        <div className="flex justify-center py-8 text-[var(--color-foreground-secondary)]">
           Loading...
         </div>
       </div>

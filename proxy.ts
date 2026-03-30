@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { verifyToken, getAuthCookieName } from './src/lib/auth';
+
+/**
+ * Next.js 16 Proxy
+ *
+ * Requirements:
+ * - 1.4: WHEN an unauthenticated user attempts to access a protected route, THE System SHALL redirect to the login page
+ * - 1.5: WHEN an unauthenticated request is made to a protected API endpoint, THE System SHALL return a 401 Unauthorized response
+ */
 
 // Protected page routes - redirect to login if unauthenticated
 const PROTECTED_PAGE_ROUTES = ['/admin', '/entries', '/chat'];
@@ -33,7 +41,7 @@ function isProtectedApiMethod(pathname: string, method: string): boolean {
   return false;
 }
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 

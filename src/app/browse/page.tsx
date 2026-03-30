@@ -12,10 +12,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { CategoryTree } from '@/components/CategoryTree';
 import { EntryCard } from '@/components/EntryCard';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
 import { TagFilter } from '@/components/TagFilter';
@@ -241,24 +239,7 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-xl font-semibold text-[var(--color-foreground)]">
-              Knowledgebase
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/browse" className="text-sm text-[var(--color-primary)] font-medium">
-                Browse
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 flex flex-col">
       {/* Main content */}
       <div className="flex-1 flex">
         {/* Sidebar */}

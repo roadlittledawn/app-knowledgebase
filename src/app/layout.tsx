@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { TopNav } from '@/components/TopNav';
 import { getThemeScript } from '@/lib/theme/theme-script';
 import './globals.css';
 
@@ -10,6 +11,7 @@ import './globals.css';
  * Requirements:
  * - 12.1: Default to dark mode when no user preference is stored
  * - 12.2: Execute pre-paint script in HTML head to set theme class before CSS loads
+ * - 12.3: Provide a ThemeToggle component accessible from the top navigation
  */
 
 const geistSans = Geist({
@@ -23,8 +25,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Knowledgebase',
+  title: {
+    default: 'Knowledgebase',
+    template: '%s | Knowledgebase',
+  },
   description: 'Personal knowledgebase for technical how-tos and concepts',
+  keywords: ['knowledgebase', 'documentation', 'technical writing', 'how-to'],
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 export default function RootLayout({
@@ -49,7 +64,10 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: getThemeScript() }} />
       </head>
       <body className="min-h-full flex flex-col bg-[var(--color-background)] text-[var(--color-foreground)]">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <TopNav />
+          <main className="flex-1 flex flex-col">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );
