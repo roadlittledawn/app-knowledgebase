@@ -29,3 +29,10 @@ export { FrontmatterForm } from './FrontmatterForm';
 export { CategoryPicker } from './CategoryPicker';
 export { MonacoPane } from './MonacoPane';
 export { PreviewPane } from './PreviewPane';
+
+// Chat components
+export { ChatInterface } from './ChatInterface';
+export { ChatInput } from './ChatInput';
+export { MessageList, type ChatMessage } from './MessageList';
+export { MessageBubble } from './MessageBubble';
+export { SourceCitations, type SourceCitation } from './SourceCitations';

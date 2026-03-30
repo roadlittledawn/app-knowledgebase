@@ -309,8 +309,8 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
 - [x] 14. Checkpoint - Editor Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. AI RAG Chat
-  - [ ] 15.1 Implement Chat API with SSE streaming
+- [x] 15. AI RAG Chat
+  - [x] 15.1 Implement Chat API with SSE streaming
     - Create `src/app/api/chat/route.ts` POST handler with SSE
     - Set maxDuration to 300 seconds
     - Query Pinecone for top 5 similar entries
@@ -321,7 +321,7 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - Emit source citations on completion
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 16.1, 16.3, 16.4_
 
-  - [ ] 15.2 Create Chat UI
+  - [x] 15.2 Create Chat UI
     - Create `src/app/chat/page.tsx` chat page
     - Create `src/components/ChatInterface.tsx` main component
     - Create `src/components/MessageList.tsx` and `src/components/MessageBubble.tsx`
