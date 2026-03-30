@@ -13,8 +13,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
-import { searchAtlas, type AtlasSearchResult } from '@/lib/search/atlas';
-import { searchPinecone, type PineconeSearchResult } from '@/lib/search/pinecone';
+import { searchAtlas } from '@/lib/search/atlas';
+import { searchPinecone } from '@/lib/search/pinecone';
 import { mergeSearchResults, type MergedSearchResult } from '@/lib/search/merge';
 
 /**
@@ -178,7 +178,11 @@ export async function GET(
               slug: entry.slug,
               categoryId: entry.categoryId.toString(),
               status: entry.status,
-              frontmatter: entry.frontmatter,
+              frontmatter: {
+                ...entry.frontmatter,
+                // Convert ObjectId[] to string[] for relatedEntries
+                relatedEntries: entry.frontmatter.relatedEntries.map((id) => id.toString()),
+              },
               pineconeId: entry.pineconeId,
               sourceFile: entry.sourceFile,
               createdAt: entry.createdAt,
@@ -189,7 +193,7 @@ export async function GET(
             excerpt: undefined,
           };
         })
-        .filter((r): r is MergedSearchResult => r !== null);
+        .filter((r): r is NonNullable<typeof r> => r !== null) as MergedSearchResult[];
     }
 
     // Limit results

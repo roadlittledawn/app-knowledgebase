@@ -22,3 +22,10 @@ export { SearchResults } from './SearchResults';
 
 // Filter components
 export { TagFilter } from './TagFilter';
+
+// Editor components
+export { EntryEditor } from './EntryEditor';
+export { FrontmatterForm } from './FrontmatterForm';
+export { CategoryPicker } from './CategoryPicker';
+export { MonacoPane } from './MonacoPane';
+export { PreviewPane } from './PreviewPane';

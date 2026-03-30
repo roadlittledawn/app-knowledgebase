@@ -258,23 +258,23 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 45: Tag/Topic/Language Aggregation Accuracy**
     - **Validates: Requirements 13.1, 13.2, 13.3**
 
-- [ ] 12. Checkpoint - Search Complete
+- [x] 12. Checkpoint - Search Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. MDX Editor with Live Preview
-  - [ ] 13.1 Create editor page layout
+- [x] 13. MDX Editor with Live Preview
+  - [x] 13.1 Create editor page layout
     - Create `src/app/entries/new/page.tsx` for new entries
     - Create `src/app/entries/[id]/edit/page.tsx` for editing
     - Create `src/components/EntryEditor.tsx` main editor component
     - Implement split-pane layout with react-resizable-panels
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 13.2 Integrate Monaco editor
+  - [x] 13.2 Integrate Monaco editor
     - Create `src/components/MonacoPane.tsx` with dynamic import (SSR disabled)
     - Sync Monaco theme with app dark/light mode
     - _Requirements: 6.9, 6.10_
 
-  - [ ] 13.3 Implement live preview with debouncing
+  - [x] 13.3 Implement live preview with debouncing
     - Create `src/app/api/preview/route.ts` POST handler
     - Create `src/components/PreviewPane.tsx` with MDX rendering
     - Implement 600ms debounce on content changes
@@ -286,17 +286,17 @@ For all tasks that include `npm` commands, you must prepend the command with `NP
     - **Property 22: MDX Serialization Round-Trip**
     - **Validates: Requirements 6.3, 6.4**
 
-  - [ ] 13.5 Create frontmatter form
+  - [x] 13.5 Create frontmatter form
     - Create `src/components/FrontmatterForm.tsx` with all fields
     - Include title, topics, tags, languages, skillLevel, needsHelp, isPrivate, resources, relatedEntries
     - _Requirements: 6.6_
 
-  - [ ] 13.6 Create CategoryPicker component
+  - [x] 13.6 Create CategoryPicker component
     - Create `src/components/CategoryPicker.tsx` with tree display
     - Support inline category creation without leaving editor
     - _Requirements: 3.11, 3.12_
 
-  - [ ] 13.7 Implement entry save functionality
+  - [x] 13.7 Implement entry save functionality
     - Create status toggle (draft/published)
     - Serialize frontmatter to YAML on save
     - Wire save to Entry API
