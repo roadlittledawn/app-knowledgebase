@@ -28,9 +28,10 @@ export function getThemeScript(): string {
   
   // Default to dark mode if no preference stored (Requirement 12.1)
   var theme = stored === 'light' ? 'light' : 'dark';
+  var ddsTheme = theme === 'light' ? 'dds-light' : 'dds-dark';
   
-  document.documentElement.classList.remove('light', 'dark');
-  document.documentElement.classList.add(theme);
+  document.documentElement.classList.remove('light', 'dark', 'dds-light', 'dds-dark');
+  document.documentElement.classList.add(theme, ddsTheme);
   document.documentElement.style.colorScheme = theme;
 })();
 `.trim();

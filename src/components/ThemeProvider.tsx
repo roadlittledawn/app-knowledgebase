@@ -41,8 +41,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   const applyTheme = useCallback((newTheme: Theme) => {
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(newTheme);
+    const ddsTheme = newTheme === 'light' ? 'dds-light' : 'dds-dark';
+    document.documentElement.classList.remove('light', 'dark', 'dds-light', 'dds-dark');
+    document.documentElement.classList.add(newTheme, ddsTheme);
     document.documentElement.style.colorScheme = newTheme;
   }, []);
 
