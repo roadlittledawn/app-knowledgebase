@@ -4,10 +4,10 @@
  * Provides GET endpoint for retrieving knowledgebase statistics.
  *
  * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5
- * - 10.1: Display total counts for entries, topics, and tags
+ * - 10.1: Display total counts for entries and tags
  * - 10.2: Display the count of entries marked as needsHelp
  * - 10.3: Display lists of recently created and recently updated entries
- * - 10.4: Display top tags and topics by entry count
+ * - 10.4: Display top tags by entry count
  * - 10.5: Display skill level distribution across entries
  */
 
@@ -28,20 +28,13 @@ interface TagCount {
   count: number;
 }
 
-interface TopicCount {
-  topic: string;
-  count: number;
-}
-
 interface AdminStatsResponse {
   totalEntries: number;
-  totalTopics: number;
   totalTags: number;
   needsHelpCount: number;
   recentlyCreated: RecentEntry[];
   recentlyUpdated: RecentEntry[];
   topTags: TagCount[];
-  topTopics: TopicCount[];
   skillLevelDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
 }
 
@@ -64,10 +57,10 @@ async function verifyAuth(request: NextRequest): Promise<boolean> {
  * GET /api/admin/stats
  *
  * Retrieves knowledgebase statistics including:
- * - Total counts for entries, topics, and tags
+ * - Total counts for entries and tags
  * - Count of entries needing help
  * - Recently created and updated entries
- * - Top tags and topics by count
+ * - Top tags by count
  * - Skill level distribution
  */
 export async function GET(
@@ -86,12 +79,10 @@ export async function GET(
     const [
       totalEntries,
       needsHelpCount,
-      uniqueTopics,
       uniqueTags,
       recentlyCreated,
       recentlyUpdated,
       topTags,
-      topTopics,
       skillDistribution,
     ] = await Promise.all([
       // Total entries count
@@ -99,13 +90,6 @@ export async function GET(
 
       // Entries needing help count
       Entry.countDocuments({ 'frontmatter.needsHelp': true }),
-
-      // Unique topics aggregation
-      Entry.aggregate([
-        { $unwind: '$frontmatter.topics' },
-        { $group: { _id: '$frontmatter.topics' } },
-        { $count: 'count' },
-      ]),
 
       // Unique tags aggregation
       Entry.aggregate([
@@ -135,15 +119,6 @@ export async function GET(
         { $sort: { count: -1 } },
         { $limit: 10 },
         { $project: { tag: '$_id', count: 1, _id: 0 } },
-      ]),
-
-      // Top topics by count (top 10)
-      Entry.aggregate([
-        { $unwind: '$frontmatter.topics' },
-        { $group: { _id: '$frontmatter.topics', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-        { $project: { topic: '$_id', count: 1, _id: 0 } },
       ]),
 
       // Skill level distribution
@@ -187,13 +162,11 @@ export async function GET(
 
     return NextResponse.json({
       totalEntries,
-      totalTopics: uniqueTopics[0]?.count || 0,
       totalTags: uniqueTags[0]?.count || 0,
       needsHelpCount,
       recentlyCreated: recentlyCreated.map(transformRecentEntry),
       recentlyUpdated: recentlyUpdated.map(transformRecentEntry),
       topTags: topTags as TagCount[],
-      topTopics: topTopics as TopicCount[],
       skillLevelDistribution,
     });
   } catch (error) {

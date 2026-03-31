@@ -164,9 +164,6 @@ function buildUserMessage(
 
   // Entry metadata
   parts.push(`## Current Entry\n\nTitle: ${frontmatter.title}`);
-  if (frontmatter.topics.length > 0) {
-    parts.push(`Topics: ${frontmatter.topics.join(', ')}`);
-  }
   if (frontmatter.tags.length > 0) {
     parts.push(`Tags: ${frontmatter.tags.join(', ')}`);
   }

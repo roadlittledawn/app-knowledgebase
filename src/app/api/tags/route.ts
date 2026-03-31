@@ -1,11 +1,10 @@
 /**
  * Tags API route
- * GET /api/tags - Aggregate unique tags, topics, and languages from all entries
+ * GET /api/tags - Aggregate unique tags and languages from all entries
  *
  * Requirements:
  * - 13.1: Return all unique tags aggregated from entries
- * - 13.2: Return all unique topics aggregated from entries
- * - 13.3: Return all unique languages aggregated from entries
+ * - 13.2: Return all unique languages aggregated from entries
  */
 
 import { NextResponse } from 'next/server';
@@ -16,7 +15,6 @@ import { verifyToken, getAuthCookieName } from '@/lib/auth';
 
 interface TagsResponse {
   tags: string[];
-  topics: string[];
   languages: string[];
 }
 
@@ -51,7 +49,7 @@ function getVisibilityFilter(authenticated: boolean): Record<string, unknown> {
 
 /**
  * GET /api/tags
- * Aggregate unique tags, topics, and languages from all visible entries
+ * Aggregate unique tags and languages from all visible entries
  */
 export async function GET(): Promise<NextResponse<TagsResponse | ErrorResponse>> {
   try {
@@ -61,17 +59,11 @@ export async function GET(): Promise<NextResponse<TagsResponse | ErrorResponse>>
     const visibilityFilter = getVisibilityFilter(authenticated);
 
     // Use MongoDB aggregation to get unique values
-    const [tagsResult, topicsResult, languagesResult] = await Promise.all([
+    const [tagsResult, languagesResult] = await Promise.all([
       Entry.aggregate([
         { $match: visibilityFilter },
         { $unwind: '$frontmatter.tags' },
         { $group: { _id: '$frontmatter.tags' } },
-        { $sort: { _id: 1 } },
-      ]),
-      Entry.aggregate([
-        { $match: visibilityFilter },
-        { $unwind: '$frontmatter.topics' },
-        { $group: { _id: '$frontmatter.topics' } },
         { $sort: { _id: 1 } },
       ]),
       Entry.aggregate([
@@ -84,10 +76,9 @@ export async function GET(): Promise<NextResponse<TagsResponse | ErrorResponse>>
 
     // Extract the values from aggregation results
     const tags = tagsResult.map((r: { _id: string }) => r._id).filter(Boolean);
-    const topics = topicsResult.map((r: { _id: string }) => r._id).filter(Boolean);
     const languages = languagesResult.map((r: { _id: string }) => r._id).filter(Boolean);
 
-    return NextResponse.json({ tags, topics, languages });
+    return NextResponse.json({ tags, languages });
   } catch (error) {
     console.error('Error aggregating tags:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

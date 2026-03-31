@@ -6,7 +6,7 @@
  * - 5.1: Query both Atlas_Search_Index and Pinecone_Index
  * - 5.6: Filter results to published, non-private for unauthenticated users
  * - 5.7: Include drafts and private entries for authenticated users
- * - 5.8: Support filtering by tags, topics, and languages
+ * - 5.8: Support filtering by tags and languages
  * - 5.9: Return result excerpts highlighting matched content
  */
 
@@ -66,7 +66,6 @@ function parseArrayParam(value: string | null): string[] | undefined {
  * - q: Search query (required)
  * - mode: Search mode - 'hybrid' (default), 'atlas', or 'pinecone'
  * - tags: Comma-separated list of tags to filter by
- * - topics: Comma-separated list of topics to filter by
  * - languages: Comma-separated list of languages to filter by
  * - limit: Maximum number of results (default: 20, max: 50)
  */
@@ -88,7 +87,6 @@ export async function GET(
   }
 
   const tags = parseArrayParam(searchParams.get('tags'));
-  const topics = parseArrayParam(searchParams.get('topics'));
   const languages = parseArrayParam(searchParams.get('languages'));
   const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
 
@@ -109,7 +107,6 @@ export async function GET(
         searchAtlas({
           query,
           tags,
-          topics,
           languages,
           ...visibilityFilters,
           limit,
@@ -117,7 +114,6 @@ export async function GET(
         searchPinecone({
           query,
           tags,
-          topics,
           languages,
           ...visibilityFilters,
           limit,
@@ -131,7 +127,6 @@ export async function GET(
       const atlasResults = await searchAtlas({
         query,
         tags,
-        topics,
         languages,
         ...visibilityFilters,
         limit,
@@ -148,7 +143,6 @@ export async function GET(
       const pineconeResults = await searchPinecone({
         query,
         tags,
-        topics,
         languages,
         ...visibilityFilters,
         limit,

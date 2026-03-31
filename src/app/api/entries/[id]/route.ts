@@ -58,7 +58,6 @@ function transformEntry(doc: EntryDocument): IEntry {
     status: doc.status,
     frontmatter: {
       title: doc.frontmatter.title,
-      topics: doc.frontmatter.topics,
       tags: doc.frontmatter.tags,
       languages: doc.frontmatter.languages,
       skillLevel: doc.frontmatter.skillLevel as 1 | 2 | 3 | 4 | 5,
@@ -267,9 +266,6 @@ export async function PUT(
     if (frontmatter) {
       if (frontmatter.title !== undefined) {
         existingEntry.frontmatter.title = frontmatter.title.trim();
-      }
-      if (frontmatter.topics !== undefined) {
-        existingEntry.frontmatter.topics = frontmatter.topics;
       }
       if (frontmatter.tags !== undefined) {
         existingEntry.frontmatter.tags = frontmatter.tags;

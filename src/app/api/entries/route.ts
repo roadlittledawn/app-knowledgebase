@@ -104,7 +104,6 @@ function transformEntryForList(doc: EntryDocument): Omit<IEntry, 'body'> {
     status: doc.status,
     frontmatter: {
       title: doc.frontmatter.title,
-      topics: doc.frontmatter.topics,
       tags: doc.frontmatter.tags,
       languages: doc.frontmatter.languages,
       skillLevel: doc.frontmatter.skillLevel as 1 | 2 | 3 | 4 | 5,
@@ -147,7 +146,6 @@ export async function GET(
     // Parse query parameters - support multiple values for filters
     const categoryId = searchParams.get('categoryId');
     const tags = searchParams.getAll('tag');
-    const topics = searchParams.getAll('topic');
     const languages = searchParams.getAll('language');
     const status = searchParams.get('status') as 'draft' | 'published' | null;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
@@ -165,10 +163,6 @@ export async function GET(
     // Support multiple tags - entry must have ALL specified tags
     if (tags.length > 0) {
       filter['frontmatter.tags'] = { $all: tags };
-    }
-    // Support multiple topics - entry must have ALL specified topics
-    if (topics.length > 0) {
-      filter['frontmatter.topics'] = { $all: topics };
     }
     // Support multiple languages - entry must have ALL specified languages
     if (languages.length > 0) {
@@ -342,7 +336,6 @@ export async function POST(
       status,
       frontmatter: {
         title: frontmatter.title.trim(),
-        topics: frontmatter.topics || [],
         tags: frontmatter.tags || [],
         languages: frontmatter.languages || [],
         skillLevel: frontmatter.skillLevel ?? 3,
