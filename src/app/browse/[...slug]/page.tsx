@@ -26,6 +26,9 @@ import { MDXContent } from '@/components/mdx/MDXContent';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
 
+// Force dynamic rendering since we check authentication
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
