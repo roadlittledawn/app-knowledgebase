@@ -17,10 +17,12 @@ import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
 import { getCategoryPathArray } from '@/lib/db/queries/categories';
+import { serializeMDX } from '@/lib/mdx/serialize';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { EntryMetadata } from '@/components/EntryMetadata';
 import { RelatedEntries } from '@/components/RelatedEntries';
 import { ExternalResources } from '@/components/ExternalResources';
+import { MDXContent } from '@/components/mdx/MDXContent';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
 
@@ -130,6 +132,15 @@ export default async function EntryDetailPage({ params }: PageProps) {
   // Get related entries
   const relatedEntries = await getRelatedEntries(entry.frontmatter.relatedEntries);
 
+  // Serialize MDX content for rendering
+  let serializedMdx;
+  try {
+    serializedMdx = await serializeMDX(entry.body);
+  } catch (err) {
+    console.error('Failed to serialize MDX:', err);
+    serializedMdx = null;
+  }
+
   return (
     <div className="flex-1 flex flex-col">
       {/* Main content */}
@@ -164,11 +175,14 @@ export default async function EntryDetailPage({ params }: PageProps) {
           </header>
 
           {/* Entry body - MDX content */}
-          <div className="prose prose-invert max-w-none mb-12">
-            {/* TODO: Replace with MDX rendering when next-mdx-remote is set up */}
-            <div className="whitespace-pre-wrap text-[var(--color-foreground-secondary)]">
-              {entry.body}
-            </div>
+          <div className="prose max-w-none mb-12">
+            {serializedMdx ? (
+              <MDXContent source={serializedMdx} />
+            ) : (
+              <div className="whitespace-pre-wrap text-[var(--color-foreground-secondary)]">
+                {entry.body}
+              </div>
+            )}
           </div>
 
           {/* External Resources */}
