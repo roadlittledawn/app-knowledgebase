@@ -23,7 +23,7 @@ export function TopNav({ className = '' }: TopNavProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check authentication status on mount
+  // Check authentication status on mount and when pathname changes
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -37,7 +37,7 @@ export function TopNav({ className = '' }: TopNavProps) {
       }
     }
     checkAuth();
-  }, []);
+  }, [pathname]);
 
   const isActive = (path: string) => {
     if (path === '/browse') {

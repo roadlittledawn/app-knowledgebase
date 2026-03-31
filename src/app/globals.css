@@ -225,12 +225,12 @@ body {
   color: var(--color-primary-foreground);
 }
 
-/* Link styles using tokens */
-a {
+/* Link styles using tokens - only apply to links without explicit text color classes */
+a:not([class*='text-']) {
   color: var(--color-primary);
 }
 
-a:hover {
+a:not([class*='text-']):hover {
   color: var(--color-primary-hover);
 }
 
