@@ -4,7 +4,7 @@
  *
  * Requirements:
  * - 4.3: Render entry MDX content using the DDS component library
- * - 4.4: Display entry metadata including title, topics, tags, languages, and skill level
+ * - 4.4: Display entry metadata including title, tags, languages, and skill level
  * - 4.5: Display related entries linked from the current entry
  * - 4.6: Display external resources associated with the entry
  * - 4.7: Show breadcrumb navigation based on the category hierarchy
@@ -49,7 +49,6 @@ async function getEntryBySlug(slug: string): Promise<IEntry | null> {
     status: entry.status,
     frontmatter: {
       title: entry.frontmatter.title,
-      topics: entry.frontmatter.topics,
       tags: entry.frontmatter.tags,
       languages: entry.frontmatter.languages,
       skillLevel: entry.frontmatter.skillLevel as 1 | 2 | 3 | 4 | 5,
@@ -82,7 +81,6 @@ async function getRelatedEntries(ids: string[]): Promise<Omit<IEntry, 'body'>[]>
     status: entry.status,
     frontmatter: {
       title: entry.frontmatter.title,
-      topics: entry.frontmatter.topics,
       tags: entry.frontmatter.tags,
       languages: entry.frontmatter.languages,
       skillLevel: entry.frontmatter.skillLevel as 1 | 2 | 3 | 4 | 5,

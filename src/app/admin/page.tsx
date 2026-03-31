@@ -4,10 +4,10 @@
  * Admin Dashboard Page
  *
  * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
- * - 10.1: Display total counts for entries, topics, and tags
+ * - 10.1: Display total counts for entries and tags
  * - 10.2: Display the count of entries marked as needsHelp
  * - 10.3: Display lists of recently created and recently updated entries
- * - 10.4: Display top tags and topics by entry count
+ * - 10.4: Display top tags by entry count
  * - 10.5: Display skill level distribution across entries
  * - 10.6: Accessible only to authenticated users
  */
@@ -30,20 +30,13 @@ interface TagCount {
   count: number;
 }
 
-interface TopicCount {
-  topic: string;
-  count: number;
-}
-
 interface AdminStats {
   totalEntries: number;
-  totalTopics: number;
   totalTags: number;
   needsHelpCount: number;
   recentlyCreated: RecentEntry[];
   recentlyUpdated: RecentEntry[];
   topTags: TagCount[];
-  topTopics: TopicCount[];
   skillLevelDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
 }
 
@@ -139,7 +132,6 @@ export default function AdminDashboard() {
         {/* Stats Cards */}
         <StatsPanel
           totalEntries={stats.totalEntries}
-          totalTopics={stats.totalTopics}
           totalTags={stats.totalTags}
           needsHelpCount={stats.needsHelpCount}
         />
@@ -147,7 +139,6 @@ export default function AdminDashboard() {
         {/* Charts */}
         <TopTagsChart
           topTags={stats.topTags}
-          topTopics={stats.topTopics}
           skillLevelDistribution={stats.skillLevelDistribution}
         />
 

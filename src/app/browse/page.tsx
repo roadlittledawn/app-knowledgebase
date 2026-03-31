@@ -23,7 +23,6 @@ import type { SearchResultSource } from '@/lib/search/merge';
 
 interface TagsResponse {
   tags: string[];
-  topics: string[];
   languages: string[];
 }
 
@@ -67,10 +66,8 @@ export default function BrowsePage() {
 
   // Filter state
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
   // Fetch category tree
@@ -90,7 +87,7 @@ export default function BrowsePage() {
     fetchTree();
   }, []);
 
-  // Fetch available tags, topics, and languages
+  // Fetch available tags and languages
   useEffect(() => {
     async function fetchTags() {
       try {
@@ -98,7 +95,6 @@ export default function BrowsePage() {
         if (!res.ok) throw new Error('Failed to fetch tags');
         const data: TagsResponse = await res.json();
         setAvailableTags(data.tags);
-        setAvailableTopics(data.topics);
         setAvailableLanguages(data.languages);
       } catch (err) {
         console.error('Failed to load tags:', err);
@@ -117,7 +113,6 @@ export default function BrowsePage() {
       }
       // Add filter parameters
       selectedTags.forEach((tag) => params.append('tag', tag));
-      selectedTopics.forEach((topic) => params.append('topic', topic));
       selectedLanguages.forEach((language) => params.append('language', language));
       params.set('page', page.toString());
       params.set('limit', '20');
@@ -133,7 +128,7 @@ export default function BrowsePage() {
     } finally {
       setEntriesLoading(false);
     }
-  }, [selectedCategoryId, page, selectedTags, selectedTopics, selectedLanguages]);
+  }, [selectedCategoryId, page, selectedTags, selectedLanguages]);
 
   useEffect(() => {
     fetchEntries();
@@ -152,7 +147,6 @@ export default function BrowsePage() {
   // Clear all filters
   const handleClearFilters = useCallback(() => {
     setSelectedTags([]);
-    setSelectedTopics([]);
     setSelectedLanguages([]);
     setPage(1);
   }, []);
@@ -160,11 +154,6 @@ export default function BrowsePage() {
   // Handle filter changes - reset page when filters change
   const handleTagsChange = useCallback((tags: string[]) => {
     setSelectedTags(tags);
-    setPage(1);
-  }, []);
-
-  const handleTopicsChange = useCallback((topics: string[]) => {
-    setSelectedTopics(topics);
     setPage(1);
   }, []);
 
@@ -273,13 +262,10 @@ export default function BrowsePage() {
             <div className="mb-6">
               <TagFilter
                 tags={availableTags}
-                topics={availableTopics}
                 languages={availableLanguages}
                 selectedTags={selectedTags}
-                selectedTopics={selectedTopics}
                 selectedLanguages={selectedLanguages}
                 onTagsChange={handleTagsChange}
-                onTopicsChange={handleTopicsChange}
                 onLanguagesChange={handleLanguagesChange}
                 onClearAll={handleClearFilters}
               />
