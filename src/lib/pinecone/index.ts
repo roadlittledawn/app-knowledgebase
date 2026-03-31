@@ -7,7 +7,6 @@ export {
   getPineconeIndex,
   isPineconeConfigured,
   PINECONE_INDEX_NAME,
-  EMBEDDING_DIMENSION,
 } from './client';
 
 export {
@@ -16,7 +15,6 @@ export {
   syncEntryVector,
   batchUpsertEntryVectors,
   batchDeleteEntryVectors,
-  generateEmbedding,
   buildEmbeddingText,
   buildPineconeMetadata,
   type PineconeEntryMetadata,

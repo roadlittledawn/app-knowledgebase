@@ -29,7 +29,6 @@ import type { IEntry } from '@/types/entry';
  *             "type": "string",
  *             "analyzer": "lucene.standard"
  *           },
- *           "topics": { "type": "stringFacet" },
  *           "tags": { "type": "stringFacet" },
  *           "languages": { "type": "stringFacet" }
  *         }
@@ -61,7 +60,6 @@ export interface AtlasSearchResult {
 export interface AtlasSearchOptions {
   query: string;
   tags?: string[];
-  topics?: string[];
   languages?: string[];
   status?: 'draft' | 'published';
   isPrivate?: boolean;
@@ -110,7 +108,7 @@ function extractExcerpt(body: string, query: string, maxLength: number = 200): s
 export async function searchAtlas(options: AtlasSearchOptions): Promise<AtlasSearchResult[]> {
   await connectToDatabase();
 
-  const { query, tags, topics, languages, status, isPrivate, limit = 20 } = options;
+  const { query, tags, languages, status, isPrivate, limit = 20 } = options;
 
   // Build the search stage
   const searchStage: Record<string, unknown> = {
@@ -153,12 +151,6 @@ export async function searchAtlas(options: AtlasSearchOptions): Promise<AtlasSea
   if (tags && tags.length > 0) {
     filterConditions.push({
       in: { path: 'frontmatter.tags', value: tags },
-    });
-  }
-
-  if (topics && topics.length > 0) {
-    filterConditions.push({
-      in: { path: 'frontmatter.topics', value: topics },
     });
   }
 

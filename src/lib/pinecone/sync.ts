@@ -25,7 +25,6 @@ export interface PineconeEntryMetadata {
   title: string;
   categoryId: string;
   categoryPath: string;
-  topics: string[];
   tags: string[];
   languages: string[];
   status: string;
@@ -35,18 +34,13 @@ export interface PineconeEntryMetadata {
 
 /**
  * Build the text content for embedding from an entry
- * Combines title, topics, tags, and body for comprehensive semantic search
+ * Combines title, tags, and body for comprehensive semantic search
  *
  * @param entry - Entry to build embedding text from
  * @returns Combined text for embedding
  */
 export function buildEmbeddingText(entry: IEntry): string {
-  const parts = [
-    entry.frontmatter.title,
-    ...entry.frontmatter.topics,
-    ...entry.frontmatter.tags,
-    entry.body,
-  ];
+  const parts = [entry.frontmatter.title, ...entry.frontmatter.tags, entry.body];
 
   return parts.filter(Boolean).join(' ');
 }
@@ -65,7 +59,6 @@ export function buildPineconeMetadata(entry: IEntry, categoryPath: string): Pine
     title: entry.frontmatter.title,
     categoryId: entry.categoryId,
     categoryPath,
-    topics: entry.frontmatter.topics,
     tags: entry.frontmatter.tags,
     languages: entry.frontmatter.languages,
     status: entry.status,
@@ -89,6 +82,11 @@ export async function upsertEntryVector(entry: IEntry): Promise<string> {
     return entry._id;
   }
 
+  if (!PINECONE_INDEX_NAME) {
+    console.warn('PINECONE_INDEX_NAME is not configured, skipping vector upsert');
+    return entry._id;
+  }
+
   const client = getPineconeClient();
   const index = client.index(PINECONE_INDEX_NAME);
 
@@ -102,13 +100,15 @@ export async function upsertEntryVector(entry: IEntry): Promise<string> {
   const metadata = buildPineconeMetadata(entry, categoryPath);
 
   // Upsert using integrated inference - Pinecone generates embeddings
-  await index.upsertRecords([
-    {
-      _id: entry._id,
-      text: embeddingText,
-      ...metadata,
-    },
-  ]);
+  await index.upsertRecords({
+    records: [
+      {
+        _id: entry._id,
+        text: embeddingText,
+        ...metadata,
+      },
+    ],
+  });
 
   return entry._id;
 }
@@ -129,7 +129,7 @@ export async function deleteEntryVector(entryId: string): Promise<void> {
   }
 
   const index = getPineconeIndex();
-  await index.deleteOne(entryId);
+  await index.deleteOne({ id: entryId });
 }
 
 /**
@@ -168,9 +168,26 @@ export async function batchUpsertEntryVectors(entries: IEntry[]): Promise<string
     return entries.map((e) => e._id);
   }
 
+  if (!PINECONE_INDEX_NAME) {
+    console.warn('PINECONE_INDEX_NAME is not configured, skipping batch vector upsert');
+    return entries.map((e) => e._id);
+  }
+
   const client = getPineconeClient();
   const index = client.index(PINECONE_INDEX_NAME);
-  const records: Array<{ _id: string; text: string; [key: string]: unknown }> = [];
+  const records: Array<{
+    _id: string;
+    text: string;
+    entryId: string;
+    slug: string;
+    title: string;
+    categoryId: string;
+    categoryPath: string;
+    tags: string[];
+    languages: string[];
+    status: string;
+    isPrivate: boolean;
+  }> = [];
 
   for (const entry of entries) {
     if (entry.status !== 'published') {
@@ -193,7 +210,7 @@ export async function batchUpsertEntryVectors(entries: IEntry[]): Promise<string
     const batchSize = 100;
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize);
-      await index.upsertRecords(batch);
+      await index.upsertRecords({ records: batch });
     }
   }
 

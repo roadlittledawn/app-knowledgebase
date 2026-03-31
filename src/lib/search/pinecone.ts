@@ -28,7 +28,6 @@ export interface PineconeSearchResult {
 export interface PineconeSearchOptions {
   query: string;
   tags?: string[];
-  topics?: string[];
   languages?: string[];
   status?: 'draft' | 'published';
   isPrivate?: boolean;
@@ -41,7 +40,7 @@ export interface PineconeSearchOptions {
 function buildPineconeFilter(
   options: Omit<PineconeSearchOptions, 'query' | 'limit'>
 ): Record<string, unknown> | undefined {
-  const { tags, topics, languages, status, isPrivate } = options;
+  const { tags, languages, status, isPrivate } = options;
   const conditions: Record<string, unknown>[] = [];
 
   if (status) {
@@ -54,10 +53,6 @@ function buildPineconeFilter(
 
   if (tags && tags.length > 0) {
     conditions.push({ tags: { $in: tags } });
-  }
-
-  if (topics && topics.length > 0) {
-    conditions.push({ topics: { $in: topics } });
   }
 
   if (languages && languages.length > 0) {
@@ -87,6 +82,11 @@ export async function searchPinecone(
 ): Promise<PineconeSearchResult[]> {
   if (!isPineconeConfigured()) {
     console.warn('Pinecone is not configured, returning empty results');
+    return [];
+  }
+
+  if (!PINECONE_INDEX_NAME) {
+    console.warn('PINECONE_INDEX_NAME is not configured, returning empty results');
     return [];
   }
 
@@ -127,7 +127,6 @@ export function pineconeResultToEntry(result: PineconeSearchResult): Omit<IEntry
     status: result.metadata.status as 'draft' | 'published',
     frontmatter: {
       title: result.metadata.title,
-      topics: result.metadata.topics,
       tags: result.metadata.tags,
       languages: result.metadata.languages,
       skillLevel: 3,

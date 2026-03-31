@@ -54,6 +54,9 @@ export function getPineconeClient(): Pinecone {
  */
 export function getPineconeIndex() {
   const client = getPineconeClient();
+  if (!PINECONE_INDEX_NAME) {
+    throw new Error('PINECONE_INDEX_NAME environment variable is not set');
+  }
   return client.index(PINECONE_INDEX_NAME);
 }
 
