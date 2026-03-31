@@ -177,7 +177,7 @@ export function PreviewPane({ mdx }: PreviewPaneProps) {
 
   // Render MDX content using the same component map as entry detail pages
   return (
-    <div className="prose dark:prose-invert max-w-none p-4 [&_p]:my-2">
+    <div className="prose max-w-none p-4">
       {isLoading && (
         <div className="absolute top-2 right-2 text-xs text-[var(--color-foreground-muted)]">
           Updating...

@@ -257,3 +257,356 @@ pre code {
   border: none;
   padding: 0;
 }
+
+/* ==========================================================================
+   Prose/Markdown Content Styles
+   ========================================================================== */
+
+/**
+ * Base prose styles for MDX/Markdown content
+ * Applied via .prose class in preview and entry display
+ */
+
+.prose {
+  color: var(--color-foreground);
+  line-height: 1.75;
+  font-size: 1rem;
+}
+
+/* Headings */
+.prose h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--color-foreground);
+}
+
+.prose h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-foreground);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.prose h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-foreground);
+}
+
+.prose h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-foreground);
+}
+
+.prose h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-foreground);
+}
+
+.prose h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-foreground-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Paragraphs */
+.prose p {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+/* Remove margin from last child */
+.prose > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Links */
+.prose a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Bold and emphasis */
+.prose strong {
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.prose em {
+  font-style: italic;
+}
+
+/* Lists */
+.prose ul {
+  list-style-type: disc;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.prose li {
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Nested list styles */
+.prose ul ul {
+  list-style-type: circle;
+}
+
+.prose ul ul ul {
+  list-style-type: square;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  border-left: 4px solid var(--color-primary);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--color-foreground-secondary);
+  font-style: italic;
+}
+
+.prose blockquote p {
+  margin-bottom: 0;
+}
+
+.prose blockquote cite {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-style: normal;
+  color: var(--color-foreground-muted);
+}
+
+/* Horizontal rules */
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 2rem 0;
+}
+
+/* Inline code */
+.prose code:not(pre code) {
+  background-color: var(--color-code-background);
+  border: 1px solid var(--color-code-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875em;
+  color: var(--color-foreground);
+}
+
+/* Code blocks */
+.prose pre {
+  background-color: var(--color-code-background);
+  border: 1px solid var(--color-code-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.prose pre code {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+}
+
+.prose thead {
+  border-bottom: 2px solid var(--color-border);
+}
+
+.prose th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-foreground);
+  background-color: var(--color-surface);
+}
+
+.prose td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose tbody tr:hover {
+  background-color: var(--color-surface-hover);
+}
+
+/* Images */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.prose figure {
+  margin: 1.5rem 0;
+}
+
+.prose figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-foreground-muted);
+  text-align: center;
+}
+
+/* Definition lists */
+.prose dl {
+  margin: 1.25rem 0;
+}
+
+.prose dt {
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin-top: 1rem;
+}
+
+.prose dd {
+  margin-left: 1.5rem;
+  margin-top: 0.25rem;
+  color: var(--color-foreground-secondary);
+}
+
+/* Abbreviations */
+.prose abbr[title] {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+/* Keyboard input */
+.prose kbd {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875em;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--color-border);
+}
+
+/* Mark/highlight */
+.prose mark {
+  background-color: var(--color-warning-background);
+  color: var(--color-foreground);
+  padding: 0.125rem 0.25rem;
+  border-radius: 2px;
+}
+
+/* Subscript and superscript */
+.prose sub,
+.prose sup {
+  font-size: 0.75em;
+}
+
+/* Task lists (GFM) */
+.prose ul.contains-task-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.prose li.task-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.prose li.task-list-item input[type='checkbox'] {
+  margin-top: 0.375rem;
+}
+
+/* Strikethrough (GFM) */
+.prose del {
+  text-decoration: line-through;
+  color: var(--color-foreground-muted);
+}
+
+/* Footnotes */
+.prose .footnotes {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+
+.prose .footnotes ol {
+  padding-left: 1.25rem;
+}
+
+/* Spacing adjustments for adjacent elements */
+.prose h1 + p,
+.prose h2 + p,
+.prose h3 + p,
+.prose h4 + p {
+  margin-top: 0;
+}
+
+.prose p + h2,
+.prose ul + h2,
+.prose ol + h2,
+.prose pre + h2 {
+  margin-top: 2.5rem;
+}
+
+.prose p + h3,
+.prose ul + h3,
+.prose ol + h3,
+.prose pre + h3 {
+  margin-top: 2rem;
+}
