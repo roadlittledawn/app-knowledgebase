@@ -11,7 +11,6 @@ import type { Resource } from '@/types/entry';
  */
 export interface EntryFrontmatterDocument {
   title: string;
-  topics: string[];
   tags: string[];
   languages: string[];
   skillLevel: number;
@@ -73,11 +72,6 @@ const FrontmatterSchema = new Schema<EntryFrontmatterDocument>(
       required: [true, 'Entry title is required'],
       trim: true,
       maxlength: [200, 'Title cannot exceed 200 characters'],
-    },
-    topics: {
-      type: [String],
-      default: [],
-      index: true,
     },
     tags: {
       type: [String],
@@ -171,7 +165,6 @@ const EntrySchema = new Schema<EntryDocument, EntryModel>(
  * Indexes for efficient querying
  * - Unique index on slug field (defined inline above)
  * - Index on categoryId for category filtering
- * - Index on frontmatter.topics for topic filtering
  * - Index on frontmatter.tags for tag filtering
  * - Index on frontmatter.languages for language filtering
  * - Index on status for draft/published filtering

@@ -16,8 +16,7 @@ export interface Resource {
  */
 export interface EntryFrontmatter {
   title: string;
-  topics: string[]; // e.g. ["bash", "search"] - freeform topic tags
-  tags: string[]; // freeform tags
+  tags: string[]; // freeform tags for categorization and search
   languages: string[]; // e.g. ["javascript", "bash"]
   skillLevel: 1 | 2 | 3 | 4 | 5;
   needsHelp: boolean;

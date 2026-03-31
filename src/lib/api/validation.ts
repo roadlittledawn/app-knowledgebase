@@ -192,7 +192,7 @@ export function validateEntryFrontmatter(
   }
 
   // Array fields validation
-  const arrayFields = ['topics', 'tags', 'languages', 'relatedEntries'] as const;
+  const arrayFields = ['tags', 'languages', 'relatedEntries'] as const;
   for (const field of arrayFields) {
     if (frontmatter[field] !== undefined && !Array.isArray(frontmatter[field])) {
       throw new ValidationError(`${field} must be an array`);
