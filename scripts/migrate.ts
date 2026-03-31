@@ -46,7 +46,6 @@ import type { IEntry, Resource } from '../src/types/entry';
 interface ParsedFrontmatter {
   title?: string;
   slug?: string;
-  topics?: string[];
   tags?: string[];
   languages?: string[];
   skillLevel?: number;
@@ -200,7 +199,6 @@ function applyDefaults(frontmatter: ParsedFrontmatter): ParsedFrontmatter {
   return {
     title: frontmatter.title || 'Untitled',
     slug: frontmatter.slug,
-    topics: frontmatter.topics || [],
     tags: frontmatter.tags || [],
     languages: frontmatter.languages || [],
     skillLevel: frontmatter.skillLevel ?? 3,
@@ -253,11 +251,11 @@ async function migrateFile(
   // Validates: Requirement 11.2
   const categorySegments = parseCategoryPath(filePath, baseDir);
 
-  // Handle ai-agents special case
+  // Handle ai-agents special case - add as a tag
   // Validates: Requirement 11.11
-  let topics = [...(frontmatter.topics || [])];
-  if (isAiAgentsPath(filePath, baseDir) && !topics.includes('ai-agents')) {
-    topics = ['ai-agents', ...topics];
+  let tags = [...(frontmatter.tags || [])];
+  if (isAiAgentsPath(filePath, baseDir) && !tags.includes('ai-agents')) {
+    tags = ['ai-agents', ...tags];
   }
 
   // Get or create category
@@ -284,8 +282,7 @@ async function migrateFile(
     status: 'published', // Requirement 11.10: Set migrated entries to 'published'
     frontmatter: {
       title: frontmatter.title || 'Untitled',
-      topics,
-      tags: frontmatter.tags || [],
+      tags,
       languages: frontmatter.languages || [],
       skillLevel: skillLevel as 1 | 2 | 3 | 4 | 5,
       needsHelp: frontmatter.needsHelp ?? false,
@@ -326,7 +323,6 @@ async function syncVectorsToPinecone(
     status: entry.status,
     frontmatter: {
       title: entry.frontmatter.title,
-      topics: entry.frontmatter.topics,
       tags: entry.frontmatter.tags,
       languages: entry.frontmatter.languages,
       skillLevel: entry.frontmatter.skillLevel as 1 | 2 | 3 | 4 | 5,
