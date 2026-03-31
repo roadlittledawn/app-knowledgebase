@@ -4,6 +4,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { TopNav } from '@/components/TopNav';
 import { getThemeScript } from '@/lib/theme/theme-script';
 import './globals.css';
+// DDS component styles
+import '@roadlittledawn/docs-design-system-react/styles.css';
 
 /**
  * Root Layout

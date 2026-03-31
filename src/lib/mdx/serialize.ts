@@ -1,6 +1,8 @@
 import { serialize } from 'next-mdx-remote/serialize';
 import type { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { createHighlighter, type Highlighter, type BundledLanguage } from 'shiki';
+import { visit } from 'unist-util-visit';
+import type { Root, Element } from 'hast';
 
 let highlighter: Highlighter | null = null;
 
@@ -52,67 +54,52 @@ export async function serializeMDX(
   const hl = await getHighlighter();
   const shikiTheme = theme === 'dark' ? 'github-dark' : 'github-light';
 
+  // Create a rehype plugin that uses the pre-initialized highlighter
+  const rehypeShiki = () => {
+    return (tree: Root) => {
+      visit(tree, 'element', (node: Element) => {
+        if (node.tagName !== 'pre') return;
+
+        const codeNode = node.children?.[0] as Element | undefined;
+        if (!codeNode || codeNode.tagName !== 'code') return;
+
+        const className = (codeNode.properties?.className as string[])?.[0] || '';
+        const langMatch = className.match(/language-(\w+)/);
+        const lang = (langMatch?.[1] || 'plaintext') as BundledLanguage;
+
+        const textNode = codeNode.children?.[0];
+        const code = textNode && 'value' in textNode ? (textNode.value as string) : '';
+
+        if (!code) return;
+
+        try {
+          const highlighted = hl.codeToHtml(code, {
+            lang,
+            theme: shikiTheme,
+          });
+          // Replace the pre element with raw HTML
+          (node as unknown as { type: string; value: string }).type = 'raw';
+          (node as unknown as { type: string; value: string }).value = highlighted;
+        } catch {
+          // If language not supported, fall back to plaintext
+          try {
+            const highlighted = hl.codeToHtml(code, {
+              lang: 'plaintext',
+              theme: shikiTheme,
+            });
+            (node as unknown as { type: string; value: string }).type = 'raw';
+            (node as unknown as { type: string; value: string }).value = highlighted;
+          } catch {
+            // Leave as-is if highlighting fails completely
+          }
+        }
+      });
+    };
+  };
+
   const result = await serialize(source, {
     mdxOptions: {
-      rehypePlugins: [
-        () => (_tree) => {
-          // Process code blocks for syntax highlighting
-          const visit = async (node: unknown) => {
-            const n = node as {
-              type?: string;
-              tagName?: string;
-              children?: unknown[];
-              properties?: Record<string, unknown>;
-              value?: string;
-            };
-            if (n.type === 'element' && n.tagName === 'pre') {
-              const codeNode = n.children?.[0] as
-                | {
-                    tagName?: string;
-                    properties?: { className?: string[] };
-                    children?: { value?: string }[];
-                  }
-                | undefined;
-              if (codeNode?.tagName === 'code') {
-                const className = codeNode.properties?.className?.[0] || '';
-                const langMatch = className.match(/language-(\w+)/);
-                const lang = (langMatch?.[1] || 'plaintext') as BundledLanguage;
-                const code = codeNode.children?.[0]?.value || '';
-
-                try {
-                  const highlighted = hl.codeToHtml(code, {
-                    lang,
-                    theme: shikiTheme,
-                  });
-                  // Replace the pre element with highlighted HTML
-                  n.type = 'raw';
-                  (n as { value: string }).value = highlighted;
-                } catch {
-                  // If language not supported, fall back to plaintext
-                  const highlighted = hl.codeToHtml(code, {
-                    lang: 'plaintext',
-                    theme: shikiTheme,
-                  });
-                  n.type = 'raw';
-                  (n as { value: string }).value = highlighted;
-                }
-              }
-            }
-            if (n.children) {
-              for (const child of n.children) {
-                await visit(child);
-              }
-            }
-          };
-          return async (tree: { children?: unknown[] }) => {
-            if (tree.children) {
-              for (const child of tree.children) {
-                await visit(child);
-              }
-            }
-          };
-        },
-      ],
+      rehypePlugins: [rehypeShiki],
     },
   });
 

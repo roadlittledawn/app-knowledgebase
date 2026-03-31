@@ -410,7 +410,7 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
           <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
 
           {/* Center Panel: Monaco Editor */}
-          <Panel defaultSize={showAIPanel ? 35 : 45} minSize={25}>
+          <Panel defaultSize={showAIPanel ? 30 : 45} minSize={20}>
             <div className="h-full flex flex-col">
               <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
                 <span className="text-sm font-medium text-[var(--color-foreground)]">Editor</span>
@@ -446,7 +446,7 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
           {showAIPanel && (
             <>
               <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
-              <Panel defaultSize={20} minSize={15} maxSize={35}>
+              <Panel defaultSize={25} minSize={15} maxSize={40}>
                 <AIWritingPanel
                   body={body}
                   frontmatter={frontmatter}
