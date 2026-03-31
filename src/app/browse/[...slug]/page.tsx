@@ -151,21 +151,31 @@ export default async function EntryDetailPage({ params }: PageProps) {
 
           {/* Entry header */}
           <header className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              {entry.status === 'draft' && (
-                <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-warning-background)] text-[var(--color-warning)]">
-                  Draft
-                </span>
-              )}
-              {entry.frontmatter.isPrivate && (
-                <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-error-background)] text-[var(--color-error)]">
-                  Private
-                </span>
-              )}
-              {entry.frontmatter.needsHelp && (
-                <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-info-background)] text-[var(--color-info)]">
-                  Needs Help
-                </span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {entry.status === 'draft' && (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-warning-background)] text-[var(--color-warning)]">
+                    Draft
+                  </span>
+                )}
+                {entry.frontmatter.isPrivate && (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-error-background)] text-[var(--color-error)]">
+                    Private
+                  </span>
+                )}
+                {entry.frontmatter.needsHelp && (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-info-background)] text-[var(--color-info)]">
+                    Needs Help
+                  </span>
+                )}
+              </div>
+              {authenticated && (
+                <Link
+                  href={`/entries/${entry._id}/edit`}
+                  className="px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors"
+                >
+                  Edit
+                </Link>
               )}
             </div>
             <h1 className="text-3xl font-bold text-[var(--color-foreground)] mb-4">

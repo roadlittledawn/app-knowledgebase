@@ -294,7 +294,7 @@ pre code {
   padding-bottom: 0.5rem;
 }
 
-.prose h3 {
+.prose h3:not(.dds-card-title) {
   font-size: 1.375rem;
   font-weight: 600;
   line-height: 1.4;
@@ -312,7 +312,7 @@ pre code {
   color: var(--color-foreground);
 }
 
-.prose h5 {
+.prose h5:not(.dds-collapser-title) {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.5;
@@ -459,7 +459,7 @@ pre code {
 }
 
 /* Tables */
-.prose table {
+/* .prose table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
@@ -485,7 +485,7 @@ pre code {
 
 .prose tbody tr:hover {
   background-color: var(--color-surface-hover);
-}
+} */
 
 /* Images */
 .prose img {
