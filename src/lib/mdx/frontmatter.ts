@@ -18,7 +18,6 @@ export function serializeFrontmatter(frontmatter: EntryFrontmatter): string {
   // Create a clean object for serialization, preserving field order
   const yamlObj: Record<string, unknown> = {
     title: frontmatter.title,
-    topics: frontmatter.topics,
     tags: frontmatter.tags,
     languages: frontmatter.languages,
     skillLevel: frontmatter.skillLevel,
@@ -52,7 +51,6 @@ export function parseFrontmatter(yaml: string): EntryFrontmatter {
 
   return {
     title: (parsed.title as string) || '',
-    topics: (parsed.topics as string[]) || [],
     tags: (parsed.tags as string[]) || [],
     languages: (parsed.languages as string[]) || [],
     skillLevel: (parsed.skillLevel as 1 | 2 | 3 | 4 | 5) || 3,
@@ -88,7 +86,6 @@ export function extractFrontmatter(mdx: string): { frontmatter: EntryFrontmatter
     return {
       frontmatter: {
         title: '',
-        topics: [],
         tags: [],
         languages: [],
         skillLevel: 3,
