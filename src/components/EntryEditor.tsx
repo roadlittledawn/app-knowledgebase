@@ -28,7 +28,6 @@ interface EntryEditorProps {
 
 const defaultFrontmatter: EntryFrontmatter = {
   title: '',
-  topics: [],
   tags: [],
   languages: [],
   skillLevel: 3,
@@ -64,7 +63,12 @@ export function EntryEditor(props: EntryEditorProps) {
 type LeftPanelView = 'editor' | 'preview';
 type RightPanelView = 'metadata' | 'ai';
 
-function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorProps) {
+function EntryEditorInner({
+  entry,
+  categories: initialCategories,
+  onSave,
+  onDelete,
+}: EntryEditorProps) {
   const { theme } = useTheme();
 
   // Entry state
@@ -75,6 +79,7 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
     entry?.frontmatter || defaultFrontmatter
   );
   const [body, setBody] = useState(entry?.body || '');
+  const [categories, setCategories] = useState<CategoryTreeNode[]>(initialCategories);
 
   // UI state
   const [isSaving, setIsSaving] = useState(false);
@@ -83,6 +88,35 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
   const [selection, setSelection] = useState<string | undefined>(undefined);
   const [leftView, setLeftView] = useState<LeftPanelView>('editor');
   const [rightView, setRightView] = useState<RightPanelView>('metadata');
+
+  // Handle new category creation - add to local state
+  const handleCategoryCreated = useCallback(
+    (newCategory: CategoryTreeNode & { parentId?: string | null }) => {
+      setCategories((prev) => {
+        // If it has a parent, we need to add it as a child
+        if (newCategory.parentId) {
+          const addToParent = (cats: CategoryTreeNode[]): CategoryTreeNode[] => {
+            return cats.map((cat) => {
+              if (cat._id === newCategory.parentId) {
+                return {
+                  ...cat,
+                  children: [...cat.children, { ...newCategory, children: [], entryCount: 0 }],
+                };
+              }
+              if (cat.children.length > 0) {
+                return { ...cat, children: addToParent(cat.children) };
+              }
+              return cat;
+            });
+          };
+          return addToParent(prev);
+        }
+        // Top-level category
+        return [...prev, { ...newCategory, children: [], entryCount: 0 }];
+      });
+    },
+    []
+  );
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -281,6 +315,7 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
                 categories={categories}
                 updateFrontmatter={updateFrontmatter}
                 setCategoryId={setCategoryId}
+                onCategoryCreated={handleCategoryCreated}
               />
             ) : (
               <AIWritingPanel
@@ -307,6 +342,7 @@ interface MetadataPanelProps {
     value: EntryFrontmatter[K]
   ) => void;
   setCategoryId: (id: string) => void;
+  onCategoryCreated: (category: CategoryTreeNode & { parentId?: string | null }) => void;
 }
 
 function MetadataPanel({
@@ -315,7 +351,48 @@ function MetadataPanel({
   categories,
   updateFrontmatter,
   setCategoryId,
+  onCategoryCreated,
 }: MetadataPanelProps) {
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [parentCategoryId, setParentCategoryId] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    setIsCreatingCategory(true);
+    setCategoryError(null);
+
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newCategoryName.trim(),
+          parentId: parentCategoryId || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to create category');
+      }
+
+      const { category } = await res.json();
+      onCategoryCreated(category);
+      setCategoryId(category._id);
+      setNewCategoryName('');
+      setParentCategoryId('');
+      setShowNewCategory(false);
+    } catch (err) {
+      setCategoryError(err instanceof Error ? err.message : 'Failed to create category');
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
   return (
     <div className="p-4 space-y-4">
       <div>
@@ -341,39 +418,87 @@ function MetadataPanel({
         >
           Category *
         </label>
-        <select
-          id="category"
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-        >
-          <option value="">Select a category</option>
-          {renderCategoryOptions(categories)}
-        </select>
-      </div>
-      <div>
-        <label
-          htmlFor="topics"
-          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-        >
-          Topics
-        </label>
-        <input
-          id="topics"
-          type="text"
-          value={frontmatter.topics.join(', ')}
-          onChange={(e) =>
-            updateFrontmatter(
-              'topics',
-              e.target.value
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
-            )
-          }
-          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-          placeholder="Comma-separated topics"
-        />
+        <div className="flex gap-2">
+          <select
+            id="category"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="flex-1 px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          >
+            <option value="">Select a category</option>
+            {renderCategoryOptions(categories)}
+          </select>
+          <button
+            type="button"
+            onClick={() => setShowNewCategory(!showNewCategory)}
+            className="px-3 py-2 text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
+            title="Add new category"
+          >
+            +
+          </button>
+        </div>
+
+        {/* New Category Form */}
+        {showNewCategory && (
+          <div className="mt-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md space-y-3">
+            <div>
+              <label
+                htmlFor="newCategoryName"
+                className="block text-xs font-medium text-[var(--color-foreground-muted)] mb-1"
+              >
+                Category Name
+              </label>
+              <input
+                id="newCategoryName"
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="w-full px-2 py-1.5 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                placeholder="New category name"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="parentCategory"
+                className="block text-xs font-medium text-[var(--color-foreground-muted)] mb-1"
+              >
+                Parent Category (optional)
+              </label>
+              <select
+                id="parentCategory"
+                value={parentCategoryId}
+                onChange={(e) => setParentCategoryId(e.target.value)}
+                className="w-full px-2 py-1.5 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              >
+                <option value="">None (top-level)</option>
+                {renderCategoryOptions(categories)}
+              </select>
+            </div>
+            {categoryError && <p className="text-xs text-[var(--color-error)]">{categoryError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCreateCategory}
+                disabled={isCreatingCategory || !newCategoryName.trim()}
+                className="flex-1 px-3 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {isCreatingCategory ? 'Creating...' : 'Create'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNewCategory(false);
+                  setNewCategoryName('');
+                  setParentCategoryId('');
+                  setCategoryError(null);
+                }}
+                className="px-3 py-1.5 text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <div>
         <label
