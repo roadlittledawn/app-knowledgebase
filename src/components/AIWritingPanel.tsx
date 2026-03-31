@@ -233,7 +233,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
   const activeArtifact = artifacts.find((a) => a.id === activeArtifactId);
 
   return (
-    <div className="h-full overflow-hidden bg-[var(--color-background-secondary)] border-l border-[var(--color-border)]">
+    <div className="h-full overflow-hidden bg-[var(--color-background-secondary)]">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <h3 className="text-sm font-semibold text-[var(--color-foreground)]">

@@ -65,10 +65,10 @@ export default function RootLayout({
         */}
         <script dangerouslySetInnerHTML={{ __html: getThemeScript() }} />
       </head>
-      <body className="min-h-full flex flex-col bg-[var(--color-background)] text-[var(--color-foreground)]">
+      <body className="h-full flex flex-col bg-[var(--color-background)] text-[var(--color-foreground)]">
         <ThemeProvider>
           <TopNav />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <main className="flex-1 flex flex-col min-h-0">{children}</main>
         </ThemeProvider>
       </body>
     </html>

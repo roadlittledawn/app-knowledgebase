@@ -3,10 +3,14 @@
 /**
  * EntryEditor Component
  * Main editor component for creating and editing knowledge entries
+ *
+ * Layout:
+ * - Left column (2/3 on md+): Code editor OR Preview (toggled)
+ * - Right column (1/3 on md+): Metadata OR AI Writing (toggled)
+ * - Stacked on small screens
  */
 
 import { useState, useCallback } from 'react';
-import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
@@ -57,9 +61,13 @@ export function EntryEditor(props: EntryEditorProps) {
   );
 }
 
+type LeftPanelView = 'editor' | 'preview';
+type RightPanelView = 'metadata' | 'ai';
+
 function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorProps) {
   const { theme } = useTheme();
 
+  // Entry state
   const [slug, setSlug] = useState(entry?.slug || '');
   const [status, setStatus] = useState<'draft' | 'published'>(entry?.status || 'draft');
   const [categoryId, setCategoryId] = useState(entry?.categoryId || '');
@@ -67,12 +75,14 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
     entry?.frontmatter || defaultFrontmatter
   );
   const [body, setBody] = useState(entry?.body || '');
+
+  // UI state
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selection, setSelection] = useState<string | undefined>(undefined);
-  const [showAIPanel, setShowAIPanel] = useState(true);
-  const [showPreview, setShowPreview] = useState(true);
+  const [leftView, setLeftView] = useState<LeftPanelView>('editor');
+  const [rightView, setRightView] = useState<RightPanelView>('metadata');
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -129,33 +139,17 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
       } else {
         setBody((prev) => prev + '\n\n' + content);
       }
+      // Switch to editor view to see the applied content
+      setLeftView('editor');
     },
     [selection]
   );
-
-  // Calculate default layout based on visible panels
-  // Layout is an object mapping panel IDs to percentages (0-100)
-  const getDefaultLayout = (): { [id: string]: number } => {
-    if (showAIPanel && showPreview) {
-      return { metadata: 20, editor: 30, preview: 25, ai: 25 };
-    }
-    if (showAIPanel && !showPreview) {
-      return { metadata: 25, editor: 50, ai: 25 };
-    }
-    if (!showAIPanel && showPreview) {
-      return { metadata: 20, editor: 40, preview: 40 };
-    }
-    return { metadata: 25, editor: 75 };
-  };
-
-  // Use a key to force remount when panel visibility changes
-  const panelKey = `${showAIPanel}-${showPreview}`;
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-background)]">
       {/* Top Bar */}
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <label htmlFor="slug" className="text-sm text-[var(--color-foreground-muted)]">
@@ -199,255 +193,277 @@ function EntryEditorInner({ entry, categories, onSave, onDelete }: EntryEditorPr
             >
               {isSaving ? 'Saving...' : 'Save'}
             </button>
-            <button
-              onClick={() => setShowPreview((prev) => !prev)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                showPreview
-                  ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
-                  : 'bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]'
-              }`}
-              title={showPreview ? 'Hide Preview' : 'Show Preview'}
-            >
-              👁 Preview
-            </button>
-            <button
-              onClick={() => setShowAIPanel((prev) => !prev)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                showAIPanel
-                  ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
-                  : 'bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]'
-              }`}
-              title={showAIPanel ? 'Hide AI Assistant' : 'Show AI Assistant'}
-            >
-              🤖 AI
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Panel Layout */}
-      <div className="flex-1 min-h-0">
-        <PanelGroup
-          key={panelKey}
-          orientation="horizontal"
-          style={{ height: '100%' }}
-          defaultLayout={getDefaultLayout()}
+      {/* Main Content - Two Column Layout */}
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row">
+        {/* Left Column: Editor/Preview (2/3 on md+) */}
+        <div className="flex-1 md:w-2/3 min-h-0 flex flex-col border-b md:border-b-0 md:border-r border-[var(--color-border)]">
+          {/* Left Column Header with Toggle */}
+          <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setLeftView('editor')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  leftView === 'editor'
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+              >
+                ✏️ Editor
+              </button>
+              <button
+                onClick={() => setLeftView('preview')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  leftView === 'preview'
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+              >
+                👁 Preview
+              </button>
+            </div>
+          </div>
+
+          {/* Left Column Content */}
+          <div className="flex-1 min-h-0">
+            {leftView === 'editor' ? (
+              <MonacoPane
+                value={body}
+                onChange={setBody}
+                theme={theme}
+                onSelectionChange={handleSelectionChange}
+              />
+            ) : (
+              <div className="h-full overflow-y-auto">
+                <PreviewPane mdx={body} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Metadata/AI (1/3 on md+) */}
+        <div className="flex-1 md:flex-none md:w-1/3 min-h-0 flex flex-col bg-[var(--color-background-secondary)]">
+          {/* Right Column Header with Toggle */}
+          <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setRightView('metadata')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  rightView === 'metadata'
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+              >
+                📋 Metadata
+              </button>
+              <button
+                onClick={() => setRightView('ai')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  rightView === 'ai'
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+              >
+                🤖 AI Assistant
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column Content */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {rightView === 'metadata' ? (
+              <MetadataPanel
+                frontmatter={frontmatter}
+                categoryId={categoryId}
+                categories={categories}
+                updateFrontmatter={updateFrontmatter}
+                setCategoryId={setCategoryId}
+              />
+            ) : (
+              <AIWritingPanel
+                body={body}
+                frontmatter={frontmatter}
+                selection={selection}
+                onApply={handleApplyAIContent}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Extracted Metadata Panel component for cleaner code
+interface MetadataPanelProps {
+  frontmatter: EntryFrontmatter;
+  categoryId: string;
+  categories: CategoryTreeNode[];
+  updateFrontmatter: <K extends keyof EntryFrontmatter>(
+    field: K,
+    value: EntryFrontmatter[K]
+  ) => void;
+  setCategoryId: (id: string) => void;
+}
+
+function MetadataPanel({
+  frontmatter,
+  categoryId,
+  categories,
+  updateFrontmatter,
+  setCategoryId,
+}: MetadataPanelProps) {
+  return (
+    <div className="p-4 space-y-4">
+      <div>
+        <label
+          htmlFor="title"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
         >
-          {/* Metadata Panel */}
-          <Panel id="metadata" minSize={15} maxSize={35}>
-            <div className="h-full overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-background-secondary)]">
-              <div className="p-4 space-y-4">
-                <h3 className="text-sm font-semibold text-[var(--color-foreground)] uppercase tracking-wider">
-                  Metadata
-                </h3>
-                <div>
-                  <label
-                    htmlFor="title"
-                    className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-                  >
-                    Title *
-                  </label>
-                  <input
-                    id="title"
-                    type="text"
-                    value={frontmatter.title}
-                    onChange={(e) => updateFrontmatter('title', e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    placeholder="Entry title"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="category"
-                    className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-                  >
-                    Category *
-                  </label>
-                  <select
-                    id="category"
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                  >
-                    <option value="">Select a category</option>
-                    {renderCategoryOptions(categories)}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="topics"
-                    className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-                  >
-                    Topics
-                  </label>
-                  <input
-                    id="topics"
-                    type="text"
-                    value={frontmatter.topics.join(', ')}
-                    onChange={(e) =>
-                      updateFrontmatter(
-                        'topics',
-                        e.target.value
-                          .split(',')
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                      )
-                    }
-                    className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    placeholder="Comma-separated topics"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="tags"
-                    className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-                  >
-                    Tags
-                  </label>
-                  <input
-                    id="tags"
-                    type="text"
-                    value={frontmatter.tags.join(', ')}
-                    onChange={(e) =>
-                      updateFrontmatter(
-                        'tags',
-                        e.target.value
-                          .split(',')
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                      )
-                    }
-                    className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    placeholder="Comma-separated tags"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="languages"
-                    className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-                  >
-                    Languages
-                  </label>
-                  <input
-                    id="languages"
-                    type="text"
-                    value={frontmatter.languages.join(', ')}
-                    onChange={(e) =>
-                      updateFrontmatter(
-                        'languages',
-                        e.target.value
-                          .split(',')
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                      )
-                    }
-                    className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    placeholder="Comma-separated languages"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="skillLevel"
-                    className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-                  >
-                    Skill Level
-                  </label>
-                  <select
-                    id="skillLevel"
-                    value={frontmatter.skillLevel}
-                    onChange={(e) =>
-                      updateFrontmatter('skillLevel', parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5)
-                    }
-                    className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                  >
-                    <option value={1}>1 - Beginner</option>
-                    <option value={2}>2 - Elementary</option>
-                    <option value={3}>3 - Intermediate</option>
-                    <option value={4}>4 - Advanced</option>
-                    <option value={5}>5 - Expert</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={frontmatter.needsHelp}
-                      onChange={(e) => updateFrontmatter('needsHelp', e.target.checked)}
-                      className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                    />
-                    <span className="text-sm text-[var(--color-foreground)]">Needs Help</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={frontmatter.isPrivate}
-                      onChange={(e) => updateFrontmatter('isPrivate', e.target.checked)}
-                      className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                    />
-                    <span className="text-sm text-[var(--color-foreground)]">Private</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </Panel>
-
-          <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
-
-          {/* Editor Panel */}
-          <Panel id="editor" minSize={20}>
-            <div className="h-full overflow-hidden border-r border-[var(--color-border)]">
-              <div className="h-full grid grid-rows-[auto_1fr]">
-                <div className="px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-                  <span className="text-sm font-medium text-[var(--color-foreground)]">Editor</span>
-                </div>
-                <div className="min-h-0">
-                  <MonacoPane
-                    value={body}
-                    onChange={setBody}
-                    theme={theme}
-                    onSelectionChange={handleSelectionChange}
-                  />
-                </div>
-              </div>
-            </div>
-          </Panel>
-
-          {/* Preview Panel */}
-          {showPreview && (
-            <>
-              <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
-              <Panel id="preview" minSize={15}>
-                <div className="h-full overflow-hidden border-r border-[var(--color-border)]">
-                  <div className="h-full grid grid-rows-[auto_1fr]">
-                    <div className="px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-                      <span className="text-sm font-medium text-[var(--color-foreground)]">
-                        Preview
-                      </span>
-                    </div>
-                    <div className="min-h-0 overflow-y-auto">
-                      <PreviewPane mdx={body} />
-                    </div>
-                  </div>
-                </div>
-              </Panel>
-            </>
-          )}
-
-          {/* AI Panel */}
-          {showAIPanel && (
-            <>
-              <PanelResizeHandle className="w-1 bg-[var(--color-border)] hover:bg-[var(--color-primary)] transition-colors cursor-col-resize" />
-              <Panel id="ai" minSize={15} maxSize={40}>
-                <AIWritingPanel
-                  body={body}
-                  frontmatter={frontmatter}
-                  selection={selection}
-                  onApply={handleApplyAIContent}
-                />
-              </Panel>
-            </>
-          )}
-        </PanelGroup>
+          Title *
+        </label>
+        <input
+          id="title"
+          type="text"
+          value={frontmatter.title}
+          onChange={(e) => updateFrontmatter('title', e.target.value)}
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          placeholder="Entry title"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="category"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Category *
+        </label>
+        <select
+          id="category"
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+        >
+          <option value="">Select a category</option>
+          {renderCategoryOptions(categories)}
+        </select>
+      </div>
+      <div>
+        <label
+          htmlFor="topics"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Topics
+        </label>
+        <input
+          id="topics"
+          type="text"
+          value={frontmatter.topics.join(', ')}
+          onChange={(e) =>
+            updateFrontmatter(
+              'topics',
+              e.target.value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            )
+          }
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          placeholder="Comma-separated topics"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="tags"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Tags
+        </label>
+        <input
+          id="tags"
+          type="text"
+          value={frontmatter.tags.join(', ')}
+          onChange={(e) =>
+            updateFrontmatter(
+              'tags',
+              e.target.value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            )
+          }
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          placeholder="Comma-separated tags"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="languages"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Languages
+        </label>
+        <input
+          id="languages"
+          type="text"
+          value={frontmatter.languages.join(', ')}
+          onChange={(e) =>
+            updateFrontmatter(
+              'languages',
+              e.target.value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            )
+          }
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          placeholder="Comma-separated languages"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="skillLevel"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Skill Level
+        </label>
+        <select
+          id="skillLevel"
+          value={frontmatter.skillLevel}
+          onChange={(e) =>
+            updateFrontmatter('skillLevel', parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5)
+          }
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+        >
+          <option value={1}>1 - Beginner</option>
+          <option value={2}>2 - Elementary</option>
+          <option value={3}>3 - Intermediate</option>
+          <option value={4}>4 - Advanced</option>
+          <option value={5}>5 - Expert</option>
+        </select>
+      </div>
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={frontmatter.needsHelp}
+            onChange={(e) => updateFrontmatter('needsHelp', e.target.checked)}
+            className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          />
+          <span className="text-sm text-[var(--color-foreground)]">Needs Help</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={frontmatter.isPrivate}
+            onChange={(e) => updateFrontmatter('isPrivate', e.target.checked)}
+            className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+          />
+          <span className="text-sm text-[var(--color-foreground)]">Private</span>
+        </label>
       </div>
     </div>
   );
