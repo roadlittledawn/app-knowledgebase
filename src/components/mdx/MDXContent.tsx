@@ -17,6 +17,9 @@ import {
   Popover,
   Table,
   Tabs,
+  Tab,
+  TabList,
+  TabPanel,
   CodePlayground,
 } from '@/mdx-components';
 
@@ -35,6 +38,9 @@ const components = {
   Popover,
   Table,
   Tabs,
+  Tab,
+  TabList,
+  TabPanel,
   CodePlayground,
 };
 

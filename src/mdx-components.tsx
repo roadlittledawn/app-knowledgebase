@@ -14,6 +14,9 @@ import {
   Popover,
   Table,
   Tabs,
+  Tab,
+  TabList,
+  TabPanel,
 } from '@roadlittledawn/docs-design-system-react';
 
 // Custom CodePlayground component for iframe embeds (CodeSandbox, JSFiddle, CodePen)
@@ -56,6 +59,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Popover,
     Table,
     Tabs,
+    Tab,
+    TabList,
+    TabPanel,
     // Custom components
     CodePlayground,
     // Pass through any additional components
@@ -79,5 +85,8 @@ export {
   Popover,
   Table,
   Tabs,
+  Tab,
+  TabList,
+  TabPanel,
   CodePlayground,
 };
