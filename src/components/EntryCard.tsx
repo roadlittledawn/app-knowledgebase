@@ -6,7 +6,7 @@
  *
  * Requirements:
  * - 4.3: Render entry MDX content using the DDS component library
- * - 4.4: Display entry metadata including title, topics, tags, languages, and skill level
+ * - 4.4: Display entry metadata including title, tags, languages, and skill level
  */
 
 import Link from 'next/link';
@@ -62,20 +62,6 @@ export function EntryCard({ entry }: EntryCardProps) {
               </span>
             )}
           </div>
-
-          {/* Topics */}
-          {frontmatter.topics.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {frontmatter.topics.map((topic) => (
-                <span
-                  key={topic}
-                  className="px-2 py-0.5 text-xs rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                >
-                  {topic}
-                </span>
-              ))}
-            </div>
-          )}
 
           {/* Tags and Languages */}
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-foreground-muted)]">

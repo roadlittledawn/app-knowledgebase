@@ -2,7 +2,7 @@
 
 /**
  * TagFilter Component
- * Multi-select filter component for tags, topics, and languages
+ * Multi-select filter component for tags and languages
  *
  * Requirements:
  * - 13.4: Provide a TagFilter component for multi-select filtering on the browse page
@@ -19,13 +19,10 @@ interface FilterSection {
 
 interface TagFilterProps {
   tags: string[];
-  topics: string[];
   languages: string[];
   selectedTags: string[];
-  selectedTopics: string[];
   selectedLanguages: string[];
   onTagsChange: (tags: string[]) => void;
-  onTopicsChange: (topics: string[]) => void;
   onLanguagesChange: (languages: string[]) => void;
   onClearAll: () => void;
 }
@@ -153,13 +150,10 @@ function FilterDropdown({ section }: { section: FilterSection }) {
 
 export function TagFilter({
   tags,
-  topics,
   languages,
   selectedTags,
-  selectedTopics,
   selectedLanguages,
   onTagsChange,
-  onTopicsChange,
   onLanguagesChange,
   onClearAll,
 }: TagFilterProps) {
@@ -172,12 +166,6 @@ export function TagFilter({
   };
 
   const sections: FilterSection[] = [
-    {
-      label: 'Topics',
-      items: topics,
-      selected: selectedTopics,
-      onToggle: (item) => toggleItem(item, selectedTopics, onTopicsChange),
-    },
     {
       label: 'Tags',
       items: tags,
@@ -192,7 +180,7 @@ export function TagFilter({
     },
   ];
 
-  const totalSelected = selectedTags.length + selectedTopics.length + selectedLanguages.length;
+  const totalSelected = selectedTags.length + selectedLanguages.length;
 
   return (
     <div className="flex flex-wrap items-center gap-2">

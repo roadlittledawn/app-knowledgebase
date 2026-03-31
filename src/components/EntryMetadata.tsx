@@ -2,10 +2,10 @@
 
 /**
  * EntryMetadata Component
- * Displays entry metadata including topics, tags, languages, and skill level
+ * Displays entry metadata including tags, languages, and skill level
  *
  * Requirements:
- * - 4.4: Display entry metadata including title, topics, tags, languages, and skill level
+ * - 4.4: Display entry metadata including title, tags, languages, and skill level
  */
 
 import type { EntryFrontmatter } from '@/types/entry';
@@ -33,20 +33,6 @@ const skillLevelColors: Record<number, string> = {
 export function EntryMetadata({ frontmatter }: EntryMetadataProps) {
   return (
     <div className="space-y-4">
-      {/* Topics */}
-      {frontmatter.topics.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {frontmatter.topics.map((topic) => (
-            <span
-              key={topic}
-              className="px-3 py-1 text-sm rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20"
-            >
-              {topic}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* Metadata row */}
       <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-foreground-secondary)]">
         {/* Skill Level */}

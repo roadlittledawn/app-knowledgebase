@@ -47,9 +47,9 @@ export function RelatedEntries({ entries }: RelatedEntriesProps) {
               <h3 className="text-sm font-medium text-[var(--color-foreground)] truncate">
                 {entry.frontmatter.title}
               </h3>
-              {entry.frontmatter.topics.length > 0 && (
+              {entry.frontmatter.tags.length > 0 && (
                 <p className="text-xs text-[var(--color-foreground-muted)] mt-1 truncate">
-                  {entry.frontmatter.topics.slice(0, 3).join(' · ')}
+                  {entry.frontmatter.tags.slice(0, 3).join(' · ')}
                 </p>
               )}
             </div>

@@ -2,10 +2,10 @@
 
 /**
  * TopTagsChart Component
- * Displays top tags and topics by entry count with visual bars
+ * Displays top tags by entry count with visual bars
  *
  * Requirements: 10.4, 10.5
- * - 10.4: Display top tags and topics by entry count
+ * - 10.4: Display top tags by entry count
  * - 10.5: Display skill level distribution across entries
  */
 
@@ -14,14 +14,8 @@ interface TagCount {
   count: number;
 }
 
-interface TopicCount {
-  topic: string;
-  count: number;
-}
-
 interface TopTagsChartProps {
   topTags: TagCount[];
-  topTopics: TopicCount[];
   skillLevelDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
 }
 
@@ -130,24 +124,9 @@ function SkillDistribution({ distribution }: { distribution: Record<1 | 2 | 3 | 
   );
 }
 
-export function TopTagsChart({ topTags, topTopics, skillLevelDistribution }: TopTagsChartProps) {
+export function TopTagsChart({ topTags, skillLevelDistribution }: TopTagsChartProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <BarChart
-        title="Top Topics"
-        items={topTopics.map((t) => ({ label: t.topic, count: t.count }))}
-        color="text-[var(--color-primary)]"
-        icon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-            />
-          </svg>
-        }
-      />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <BarChart
         title="Top Tags"
         items={topTags.map((t) => ({ label: t.tag, count: t.count }))}

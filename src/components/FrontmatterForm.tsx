@@ -6,7 +6,7 @@
  *
  * Requirements:
  * - 6.6: Provide a separate form for editing frontmatter fields
- *   (title, topics, tags, languages, skillLevel, needsHelp, isPrivate, resources, relatedEntries)
+ *   (title, tags, languages, skillLevel, needsHelp, isPrivate, resources, relatedEntries)
  */
 
 import { useCallback } from 'react';
@@ -129,32 +129,6 @@ export function FrontmatterForm({
             <option value="">Select a category</option>
             {renderCategoryOptions(categories)}
           </select>
-        </div>
-
-        {/* Topics */}
-        <div>
-          <label
-            htmlFor="frontmatter-topics"
-            className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
-          >
-            Topics
-          </label>
-          <input
-            id="frontmatter-topics"
-            type="text"
-            value={frontmatter.topics.join(', ')}
-            onChange={(e) =>
-              updateField(
-                'topics',
-                e.target.value
-                  .split(',')
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              )
-            }
-            className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            placeholder="Comma-separated topics"
-          />
         </div>
 
         {/* Tags */}

@@ -111,17 +111,9 @@ function SearchResultCard({ result, query }: { result: SearchResult; query: stri
             )}
 
             {/* Tags */}
-            {(entry.frontmatter.topics.length > 0 || entry.frontmatter.tags.length > 0) && (
+            {entry.frontmatter.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">
-                {entry.frontmatter.topics.slice(0, 3).map((topic) => (
-                  <span
-                    key={topic}
-                    className="text-xs px-2 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded"
-                  >
-                    {topic}
-                  </span>
-                ))}
-                {entry.frontmatter.tags.slice(0, 3).map((tag) => (
+                {entry.frontmatter.tags.slice(0, 5).map((tag) => (
                   <span
                     key={tag}
                     className="text-xs px-2 py-0.5 bg-[var(--color-surface-hover)] text-[var(--color-foreground-muted)] rounded"
