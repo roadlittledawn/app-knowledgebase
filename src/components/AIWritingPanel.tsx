@@ -233,9 +233,9 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
   const activeArtifact = artifacts.find((a) => a.id === activeArtifactId);
 
   return (
-    <div className="h-full flex flex-col bg-[var(--color-background-secondary)] border-l border-[var(--color-border)]">
+    <div className="h-full overflow-hidden bg-[var(--color-background-secondary)] border-l border-[var(--color-border)]">
       {/* Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <h3 className="text-sm font-semibold text-[var(--color-foreground)]">
           AI Writing Assistant
         </h3>
@@ -247,7 +247,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
       </div>
 
       {/* Action Buttons */}
-      <div className="flex-shrink-0 p-3 border-b border-[var(--color-border)]">
+      <div className="p-3 border-b border-[var(--color-border)]">
         <div className="flex flex-wrap gap-2">
           {ACTION_BUTTONS.map((button) => (
             <button
@@ -274,14 +274,14 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
 
       {/* Error Display */}
       {error && (
-        <div className="flex-shrink-0 mx-3 mt-3 p-3 rounded-lg bg-[var(--color-error-background)] text-[var(--color-error)] text-sm">
+        <div className="mx-3 mt-3 p-3 rounded-lg bg-[var(--color-error-background)] text-[var(--color-error)] text-sm">
           {error}
         </div>
       )}
 
       {/* Artifact Tabs */}
       {artifacts.length > 0 && (
-        <div className="flex-shrink-0 flex items-center gap-1 px-3 pt-3 overflow-x-auto">
+        <div className="flex items-center gap-1 px-3 pt-3 overflow-x-auto">
           {artifacts.map((artifact) => (
             <div
               key={artifact.id}
@@ -315,7 +315,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
       )}
 
       {/* Artifact Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="min-h-0 overflow-y-auto">
         {activeArtifact ? (
           <div className="p-4">
             <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -333,7 +333,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
 
       {/* Apply Button */}
       {activeArtifact && activeArtifact.content && !activeArtifact.isStreaming && (
-        <div className="flex-shrink-0 p-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
           <button
             onClick={handleApply}
             className="w-full px-4 py-2 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity"
