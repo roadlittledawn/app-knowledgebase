@@ -1,6 +1,6 @@
 # Knowledgebase
 
-![Vercel Deploy](https://deploy-badge.vercel.app/vercel/app-knowledgebase)
+[![Vercel Deploy](https://deploy-badge.vercel.app/vercel/app-knowledgebase)](https://app-knowledgebase.vercel.app/browse)
 [![PR Validation](https://github.com/roadlittledawn/app-knowledgebase/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/roadlittledawn/app-knowledgebase/actions/workflows/pr-validation.yml)
 
 A personal knowledgebase for writing, storing, and browsing technical how-tos and articles on software engineering and technical writing.
