@@ -10,7 +10,7 @@
  * - Stacked on small screens
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
@@ -73,6 +73,7 @@ function EntryEditorInner({
 
   // Entry state
   const [slug, setSlug] = useState(entry?.slug || '');
+  const [slugTouched, setSlugTouched] = useState(!!entry?.slug);
   const [status, setStatus] = useState<'draft' | 'published'>(entry?.status || 'draft');
   const [categoryId, setCategoryId] = useState(entry?.categoryId || '');
   const [frontmatter, setFrontmatter] = useState<EntryFrontmatter>(
@@ -80,6 +81,19 @@ function EntryEditorInner({
   );
   const [body, setBody] = useState(entry?.body || '');
   const [categories, setCategories] = useState<CategoryTreeNode[]>(initialCategories);
+
+  // Derive slug from title (mirrors server-side generateSlug logic)
+  const derivedSlug = useMemo(
+    () =>
+      frontmatter.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, ''),
+    [frontmatter.title]
+  );
 
   // UI state
   const [isSaving, setIsSaving] = useState(false);
@@ -193,8 +207,11 @@ function EntryEditorInner({
                 id="slug"
                 type="text"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="auto-generated"
+                onChange={(e) => {
+                  setSlug(e.target.value);
+                  setSlugTouched(!!e.target.value);
+                }}
+                placeholder={derivedSlug || 'auto-generated'}
                 className="px-2 py-1 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] w-48"
               />
             </div>
