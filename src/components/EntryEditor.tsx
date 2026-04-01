@@ -296,7 +296,7 @@ function EntryEditorInner({
         </div>
 
         {/* Right Column: Metadata/AI (1/3 on md+) */}
-        <div className="flex-1 md:flex-none md:w-1/3 min-h-0 flex flex-col bg-[var(--color-background-secondary)]">
+        <div className="h-80 md:h-auto flex-shrink-0 md:flex-none md:w-1/3 min-h-0 flex flex-col overflow-hidden bg-[var(--color-background-secondary)]">
           {/* Right Column Header with Toggle */}
           <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
             <div className="flex items-center gap-1">

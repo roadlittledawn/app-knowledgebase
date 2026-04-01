@@ -233,7 +233,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
   const activeArtifact = artifacts.find((a) => a.id === activeArtifactId);
 
   return (
-    <div className="h-full overflow-hidden bg-[var(--color-background-secondary)]">
+    <div className="h-full flex flex-col bg-[var(--color-background-secondary)]">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <h3 className="text-sm font-semibold text-[var(--color-foreground)]">
@@ -315,7 +315,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
       )}
 
       {/* Artifact Content */}
-      <div className="min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {activeArtifact ? (
           <div className="p-4">
             <div className="prose prose-sm dark:prose-invert max-w-none">
