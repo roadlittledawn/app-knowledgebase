@@ -12,15 +12,25 @@ Bcrypt hashes contain `$` characters (e.g., `$2b$10$...`) which can be interpret
 
 ## Solution
 
-Escape each `$` with a backslash in your `.env` / `.env.local` file:
+### `.env.local` — wrap in single quotes
+
+dotenv-expand does not interpolate `$` inside single quotes. dotenv strips the quotes before setting the value, so `process.env.ADMIN_PASSWORD_HASH` receives the raw hash.
 
 ```
-ADMIN_PASSWORD_HASH=\$2b\$10\$gIzvM73qB3dvpWAC9P8touM7ur6AHdtPPHjWAFRp.2bWE0WKtkKuq
+ADMIN_PASSWORD_HASH='$2b$10$gIzvM73qB3dvpWAC9P8touM7ur6AHdtPPHjWAFRp.2bWE0WKtkKuq'
 ```
 
-## Notes
+### Vercel dashboard — paste the raw hash, no quoting or escaping
 
-- This behavior may vary between Next.js versions and dotenv implementations
-- Double quotes (`"$2b$..."`) work in some setups but not all
-- Single quotes are treated literally and included in the value
-- Always verify hash length is 60 characters after server restart
+Vercel stores env vars as plain strings (no dotenv parsing). Paste the hash exactly as bcrypt outputs it.
+
+```
+$2b$10$gIzvM73qB3dvpWAC9P8touM7ur6AHdtPPHjWAFRp.2bWE0WKtkKuq
+```
+
+## Verification
+
+The login route logs `hashLength` and `hashPrefix`. After setting the variable, check Vercel/local logs on a failed login attempt:
+
+- `hashLength` should be **60**
+- `hashPrefix` should start with **`$2b$`**
