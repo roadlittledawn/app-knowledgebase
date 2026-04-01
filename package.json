@@ -21,6 +21,7 @@
     "@types/hast": "^3.0.4",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.2",
+    "lucide-react": "^1.7.0",
     "mongoose": "^9.3.3",
     "next": "16.2.1",
     "next-mdx-remote": "^6.0.0",

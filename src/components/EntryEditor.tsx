@@ -17,6 +17,7 @@ import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { useTheme } from './ThemeProvider';
+import { Pencil, Eye, ClipboardList, Bot } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
@@ -223,23 +224,23 @@ function EntryEditorInner({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setLeftView('editor')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   leftView === 'editor'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                ✏️ Editor
+                <Pencil className="w-4 h-4" /> Editor
               </button>
               <button
                 onClick={() => setLeftView('preview')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   leftView === 'preview'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                👁 Preview
+                <Eye className="w-4 h-4" /> Preview
               </button>
             </div>
           </div>
@@ -268,23 +269,23 @@ function EntryEditorInner({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setRightView('metadata')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'metadata'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                📋 Metadata
+                <ClipboardList className="w-4 h-4" /> Metadata
               </button>
               <button
                 onClick={() => setRightView('ai')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'ai'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                🤖 AI Assistant
+                <Bot className="w-4 h-4" /> AI Assistant
               </button>
             </div>
           </div>
