@@ -13,4 +13,4 @@ if (!password) {
 }
 
 const hash = bcrypt.hashSync(password, 10);
-console.log(hash);
+process.stdout.write(hash + '\n');

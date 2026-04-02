@@ -74,7 +74,6 @@ function EntryEditorInner({
 
   // Entry state
   const [slug, setSlug] = useState(entry?.slug || '');
-  const [slugTouched, setSlugTouched] = useState(!!entry?.slug);
   const [status, setStatus] = useState<'draft' | 'published'>(entry?.status || 'draft');
   const [categoryId, setCategoryId] = useState(entry?.categoryId || '');
   const [frontmatter, setFrontmatter] = useState<EntryFrontmatter>(
@@ -297,7 +296,6 @@ function EntryEditorInner({
                 frontmatter={frontmatter}
                 slug={slug}
                 setSlug={setSlug}
-                setSlugTouched={setSlugTouched}
                 derivedSlug={derivedSlug}
                 status={status}
                 setStatus={setStatus}
@@ -327,7 +325,6 @@ interface MetadataPanelProps {
   frontmatter: EntryFrontmatter;
   slug: string;
   setSlug: (slug: string) => void;
-  setSlugTouched: (touched: boolean) => void;
   derivedSlug: string;
   status: 'draft' | 'published';
   setStatus: (status: 'draft' | 'published') => void;
@@ -345,7 +342,6 @@ function MetadataPanel({
   frontmatter,
   slug,
   setSlug,
-  setSlugTouched,
   derivedSlug,
   status,
   setStatus,
@@ -424,10 +420,7 @@ function MetadataPanel({
           id="slug"
           type="text"
           value={slug}
-          onChange={(e) => {
-            setSlug(e.target.value);
-            setSlugTouched(!!e.target.value);
-          }}
+          onChange={(e) => setSlug(e.target.value)}
           placeholder={derivedSlug || 'auto-generated'}
           className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
