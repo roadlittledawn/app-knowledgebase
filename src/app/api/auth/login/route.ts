@@ -30,14 +30,6 @@ export async function POST(
     const adminUsername = process.env.ADMIN_USERNAME;
     const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-    console.log('Login attempt:', {
-      username,
-      adminUsername,
-      hasHash: !!adminPasswordHash,
-      hashLength: adminPasswordHash?.length,
-      hashPrefix: adminPasswordHash?.substring(0, 7),
-    });
-
     if (!adminUsername || !adminPasswordHash) {
       console.error('Admin credentials not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
@@ -46,8 +38,6 @@ export async function POST(
     // Verify credentials
     const usernameMatches = username === adminUsername;
     const passwordMatches = await verifyPassword(password, adminPasswordHash);
-
-    console.log('Verification result:', { usernameMatches, passwordMatches });
 
     if (!usernameMatches || !passwordMatches) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
