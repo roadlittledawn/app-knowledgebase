@@ -17,6 +17,9 @@ import { EntryCard } from '@/components/EntryCard';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
 import { TagFilter } from '@/components/TagFilter';
+import { MobileDrawer } from '@/components/MobileDrawer';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
+import { useMobileNav } from '@/components/MobileNavContext';
 import type { CategoryTreeNode } from '@/types/category';
 import type { IEntry } from '@/types/entry';
 import type { SearchResultSource } from '@/lib/search/merge';
@@ -47,6 +50,7 @@ interface SearchResponse {
 }
 
 export default function BrowsePage() {
+  const { close } = useMobileNav();
   const [tree, setTree] = useState<CategoryTreeNode[]>([]);
   const [entries, setEntries] = useState<Omit<IEntry, 'body'>[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -142,6 +146,7 @@ export default function BrowsePage() {
     setSearchQuery('');
     setSearchResults([]);
     setSearchError(null);
+    close();
   };
 
   // Clear all filters
@@ -228,50 +233,60 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Main content */}
-      <div className="flex-1 flex">
-        {/* Sidebar */}
-        <aside className="w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
-          <div className="p-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
-              Categories
-            </h2>
-            <CategoryTree
-              tree={tree}
-              selectedCategoryId={selectedCategoryId ?? undefined}
-              onSelect={handleCategorySelect}
+    <div className="flex-1 flex min-h-0">
+      {/* Mobile drawer — category tree */}
+      <MobileDrawer>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+          Categories
+        </h2>
+        <CategoryTree
+          tree={tree}
+          selectedCategoryId={selectedCategoryId ?? undefined}
+          onSelect={handleCategorySelect}
+        />
+      </MobileDrawer>
+
+      {/* Left sidebar — categories (lg+) */}
+      <aside className="hidden lg:flex lg:flex-col w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
+        <div className="p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+            Categories
+          </h2>
+          <CategoryTree
+            tree={tree}
+            selectedCategoryId={selectedCategoryId ?? undefined}
+            onSelect={handleCategorySelect}
+          />
+        </div>
+      </aside>
+
+      {/* Center — entry list */}
+      <main className="flex-1 min-w-0 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          {/* Filter collapsible — hidden on xl when right sidebar is visible */}
+          <CollapsibleSection title="Filter" className="xl:hidden mb-4">
+            <TagFilter
+              tags={availableTags}
+              languages={availableLanguages}
+              selectedTags={selectedTags}
+              selectedLanguages={selectedLanguages}
+              onTagsChange={handleTagsChange}
+              onLanguagesChange={handleLanguagesChange}
+              onClearAll={handleClearFilters}
+            />
+          </CollapsibleSection>
+
+          {/* Search bar */}
+          <div className="mb-4">
+            <SearchBar
+              onSearch={handleSearch}
+              placeholder="Search entries..."
+              initialValue={searchQuery}
+              isLoading={isSearching}
             />
           </div>
-        </aside>
 
-        {/* Entry list */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            {/* Search bar */}
-            <div className="mb-4">
-              <SearchBar
-                onSearch={handleSearch}
-                placeholder="Search entries..."
-                initialValue={searchQuery}
-                isLoading={isSearching}
-              />
-            </div>
-
-            {/* Tag filters */}
-            <div className="mb-6">
-              <TagFilter
-                tags={availableTags}
-                languages={availableLanguages}
-                selectedTags={selectedTags}
-                selectedLanguages={selectedLanguages}
-                onTagsChange={handleTagsChange}
-                onLanguagesChange={handleLanguagesChange}
-                onClearAll={handleClearFilters}
-              />
-            </div>
-
-            {/* Search mode indicator and clear button */}
+          {/* Search mode indicator and clear button */}
             {isSearchMode && (
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm text-[var(--color-foreground-muted)]">Search results</span>
@@ -354,7 +369,24 @@ export default function BrowsePage() {
             )}
           </div>
         </main>
-      </div>
+
+        {/* Right sidebar — filters (visible on xl+) */}
+        <aside className="hidden xl:flex xl:flex-col w-64 flex-shrink-0 border-l border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
+          <div className="p-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-3">
+              Filter
+            </h2>
+            <TagFilter
+              tags={availableTags}
+              languages={availableLanguages}
+              selectedTags={selectedTags}
+              selectedLanguages={selectedLanguages}
+              onTagsChange={handleTagsChange}
+              onLanguagesChange={handleLanguagesChange}
+              onClearAll={handleClearFilters}
+            />
+          </div>
+        </aside>
     </div>
   );
 }

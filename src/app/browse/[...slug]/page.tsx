@@ -16,13 +16,14 @@ import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
-import { getCategoryPathArray } from '@/lib/db/queries/categories';
+import { getCategoryPathArray, getCategoryTreeWithCounts } from '@/lib/db/queries/categories';
 import { serializeMDX } from '@/lib/mdx/serialize';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { EntryMetadata } from '@/components/EntryMetadata';
-import { RelatedEntries } from '@/components/RelatedEntries';
-import { ExternalResources } from '@/components/ExternalResources';
+import { EntrySidebar } from '@/components/EntrySidebar';
+import { CategoryNavSidebar } from '@/components/CategoryNavSidebar';
 import { MDXContent } from '@/components/mdx/MDXContent';
+import { MobileDrawer } from '@/components/MobileDrawer';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
 
@@ -124,13 +125,15 @@ export default async function EntryDetailPage({ params }: PageProps) {
     }
   }
 
-  // Get category path for breadcrumbs
+  // Get category path for breadcrumbs and tree for left sidebar
   let categoryPath: ICategory[] = [];
   try {
     categoryPath = await getCategoryPathArray(entry.categoryId);
   } catch {
     // Category might not exist, continue without breadcrumbs
   }
+
+  const categoryTree = await getCategoryTreeWithCounts();
 
   // Get related entries
   const relatedEntries = await getRelatedEntries(entry.frontmatter.relatedEntries);
@@ -144,50 +147,65 @@ export default async function EntryDetailPage({ params }: PageProps) {
     serializedMdx = null;
   }
 
+  // Build sidebar-safe entry (without body)
+  const sidebarEntry: Omit<IEntry, 'body'> = {
+    _id: entry._id,
+    slug: entry.slug,
+    categoryId: entry.categoryId,
+    status: entry.status,
+    frontmatter: entry.frontmatter,
+    pineconeId: entry.pineconeId,
+    sourceFile: entry.sourceFile,
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+  };
+
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Main content */}
-      <main className="flex-1">
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex-1 flex min-h-0">
+      {/* Mobile drawer — category tree */}
+      <MobileDrawer>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+          Categories
+        </h2>
+        <CategoryNavSidebar tree={categoryTree} selectedCategoryId={entry.categoryId} />
+      </MobileDrawer>
+
+      {/* Left sidebar — category tree (lg+) */}
+      <aside className="hidden lg:flex lg:flex-col w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
+        <div className="p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+            Categories
+          </h2>
+          <CategoryNavSidebar tree={categoryTree} selectedCategoryId={entry.categoryId} />
+        </div>
+      </aside>
+
+      {/* Center — article content */}
+      <main className="flex-1 min-w-0 overflow-y-auto">
+        {/* Entry details collapsible — hidden on xl when right sidebar is visible */}
+        <CollapsibleSection
+          title="Entry Details"
+          className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
+        >
+          <EntrySidebar
+            entry={sidebarEntry}
+            relatedEntries={relatedEntries}
+            authenticated={authenticated}
+          />
+        </CollapsibleSection>
+
+        <article className="max-w-3xl mx-auto px-6 py-8">
           {/* Breadcrumbs */}
           <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
 
           {/* Entry header */}
           <header className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                {entry.status === 'draft' && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-warning-background)] text-[var(--color-warning)]">
-                    Draft
-                  </span>
-                )}
-                {entry.frontmatter.isPrivate && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-error-background)] text-[var(--color-error)]">
-                    Private
-                  </span>
-                )}
-                {entry.frontmatter.needsHelp && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-info-background)] text-[var(--color-info)]">
-                    Needs Help
-                  </span>
-                )}
-              </div>
-              {authenticated && (
-                <Link
-                  href={`/entries/${entry._id}/edit`}
-                  className="px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors"
-                >
-                  Edit
-                </Link>
-              )}
-            </div>
-            <h1 className="text-3xl font-bold text-[var(--color-foreground)] mb-4">
+            <h1 className="text-3xl font-bold text-[var(--color-foreground)]">
               {entry.frontmatter.title}
             </h1>
-            <EntryMetadata frontmatter={entry.frontmatter} />
           </header>
 
-          {/* Entry body - MDX content */}
+          {/* Entry body — MDX content */}
           <div className="prose max-w-none mb-12">
             {serializedMdx ? (
               <MDXContent source={serializedMdx} />
@@ -198,35 +216,26 @@ export default async function EntryDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* External Resources */}
-          {entry.frontmatter.resources.length > 0 && (
-            <ExternalResources resources={entry.frontmatter.resources} />
-          )}
-
-          {/* Related Entries */}
-          {relatedEntries.length > 0 && <RelatedEntries entries={relatedEntries} />}
-
-          {/* Footer metadata */}
+          {/* Footer */}
           <footer className="mt-12 pt-6 border-t border-[var(--color-border)]">
-            <div className="flex items-center justify-between text-sm text-[var(--color-foreground-muted)]">
-              <span>
-                Last updated:{' '}
-                {new Date(entry.updatedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-              <Link
-                href="/browse"
-                className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
-              >
-                ← Back to Browse
-              </Link>
-            </div>
+            <Link
+              href="/browse"
+              className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
+            >
+              ← Back to Browse
+            </Link>
           </footer>
         </article>
       </main>
+
+      {/* Right sidebar — entry metadata */}
+      <aside className="hidden xl:flex xl:flex-col w-72 flex-shrink-0 border-l border-[var(--color-border)] overflow-y-auto">
+        <EntrySidebar
+          entry={sidebarEntry}
+          relatedEntries={relatedEntries}
+          authenticated={authenticated}
+        />
+      </aside>
     </div>
   );
 }
