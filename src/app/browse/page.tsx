@@ -17,6 +17,9 @@ import { EntryCard } from '@/components/EntryCard';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
 import { TagFilter } from '@/components/TagFilter';
+import { MobileDrawer } from '@/components/MobileDrawer';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
+import { useMobileNav } from '@/components/MobileNavContext';
 import type { CategoryTreeNode } from '@/types/category';
 import type { IEntry } from '@/types/entry';
 import type { SearchResultSource } from '@/lib/search/merge';
@@ -47,6 +50,7 @@ interface SearchResponse {
 }
 
 export default function BrowsePage() {
+  const { close } = useMobileNav();
   const [tree, setTree] = useState<CategoryTreeNode[]>([]);
   const [entries, setEntries] = useState<Omit<IEntry, 'body'>[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -142,6 +146,7 @@ export default function BrowsePage() {
     setSearchQuery('');
     setSearchResults([]);
     setSearchError(null);
+    close();
   };
 
   // Clear all filters
@@ -229,8 +234,20 @@ export default function BrowsePage() {
 
   return (
     <div className="flex-1 flex min-h-0">
-      {/* Left sidebar — categories */}
-      <aside className="w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
+      {/* Mobile drawer — category tree */}
+      <MobileDrawer>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+          Categories
+        </h2>
+        <CategoryTree
+          tree={tree}
+          selectedCategoryId={selectedCategoryId ?? undefined}
+          onSelect={handleCategorySelect}
+        />
+      </MobileDrawer>
+
+      {/* Left sidebar — categories (lg+) */}
+      <aside className="hidden lg:flex lg:flex-col w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
         <div className="p-4">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
             Categories
@@ -246,18 +263,8 @@ export default function BrowsePage() {
       {/* Center — entry list */}
       <main className="flex-1 min-w-0 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-6 py-8">
-          {/* Search bar */}
-          <div className="mb-4">
-            <SearchBar
-              onSearch={handleSearch}
-              placeholder="Search entries..."
-              initialValue={searchQuery}
-              isLoading={isSearching}
-            />
-          </div>
-
-          {/* Tag filters — hidden on xl when right sidebar is visible */}
-          <div className="mb-6 xl:hidden">
+          {/* Filter collapsible — hidden on xl when right sidebar is visible */}
+          <CollapsibleSection title="Filter" className="xl:hidden mb-4">
             <TagFilter
               tags={availableTags}
               languages={availableLanguages}
@@ -266,6 +273,16 @@ export default function BrowsePage() {
               onTagsChange={handleTagsChange}
               onLanguagesChange={handleLanguagesChange}
               onClearAll={handleClearFilters}
+            />
+          </CollapsibleSection>
+
+          {/* Search bar */}
+          <div className="mb-4">
+            <SearchBar
+              onSearch={handleSearch}
+              placeholder="Search entries..."
+              initialValue={searchQuery}
+              isLoading={isSearching}
             />
           </div>
 

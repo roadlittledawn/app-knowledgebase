@@ -22,6 +22,8 @@ import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { EntrySidebar } from '@/components/EntrySidebar';
 import { CategoryNavSidebar } from '@/components/CategoryNavSidebar';
 import { MDXContent } from '@/components/mdx/MDXContent';
+import { MobileDrawer } from '@/components/MobileDrawer';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
 
@@ -160,7 +162,15 @@ export default async function EntryDetailPage({ params }: PageProps) {
 
   return (
     <div className="flex-1 flex min-h-0">
-      {/* Left sidebar — category tree */}
+      {/* Mobile drawer — category tree */}
+      <MobileDrawer>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+          Categories
+        </h2>
+        <CategoryNavSidebar tree={categoryTree} selectedCategoryId={entry.categoryId} />
+      </MobileDrawer>
+
+      {/* Left sidebar — category tree (lg+) */}
       <aside className="hidden lg:flex lg:flex-col w-64 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-background-secondary)] overflow-y-auto">
         <div className="p-4">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
@@ -172,6 +182,18 @@ export default async function EntryDetailPage({ params }: PageProps) {
 
       {/* Center — article content */}
       <main className="flex-1 min-w-0 overflow-y-auto">
+        {/* Entry details collapsible — hidden on xl when right sidebar is visible */}
+        <CollapsibleSection
+          title="Entry Details"
+          className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
+        >
+          <EntrySidebar
+            entry={sidebarEntry}
+            relatedEntries={relatedEntries}
+            authenticated={authenticated}
+          />
+        </CollapsibleSection>
+
         <article className="max-w-3xl mx-auto px-6 py-8">
           {/* Breadcrumbs */}
           <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
