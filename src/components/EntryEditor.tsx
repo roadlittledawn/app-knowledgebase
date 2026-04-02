@@ -10,13 +10,14 @@
  * - Stacked on small screens
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { useTheme } from './ThemeProvider';
+import { Pencil, Eye, ClipboardList, Bot } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
@@ -80,6 +81,19 @@ function EntryEditorInner({
   );
   const [body, setBody] = useState(entry?.body || '');
   const [categories, setCategories] = useState<CategoryTreeNode[]>(initialCategories);
+
+  // Derive slug from title (mirrors server-side generateSlug logic)
+  const derivedSlug = useMemo(
+    () =>
+      frontmatter.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, ''),
+    [frontmatter.title]
+  );
 
   // UI state
   const [isSaving, setIsSaving] = useState(false);
@@ -150,10 +164,6 @@ function EntryEditorInner({
     }
   }, [onDelete]);
 
-  const handleStatusToggle = useCallback(() => {
-    setStatus((prev) => (prev === 'draft' ? 'published' : 'draft'));
-  }, []);
-
   const updateFrontmatter = useCallback(
     <K extends keyof EntryFrontmatter>(field: K, value: EntryFrontmatter[K]) => {
       setFrontmatter((prev) => ({ ...prev, [field]: value }));
@@ -183,51 +193,24 @@ function EntryEditorInner({
     <div className="h-full flex flex-col bg-[var(--color-background)]">
       {/* Top Bar */}
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label htmlFor="slug" className="text-sm text-[var(--color-foreground-muted)]">
-                Slug:
-              </label>
-              <input
-                id="slug"
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="auto-generated"
-                className="px-2 py-1 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] w-48"
-              />
-            </div>
+        <div className="px-4 py-3 flex items-center justify-end gap-2">
+          {error && <span className="text-sm text-[var(--color-error)] mr-2">{error}</span>}
+          {onDelete && (
             <button
-              onClick={handleStatusToggle}
-              className={`px-3 py-1 text-sm font-medium rounded-full transition-colors ${
-                status === 'published'
-                  ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                  : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
-              }`}
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-3 py-1.5 text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-md transition-colors disabled:opacity-50"
             >
-              {status === 'published' ? 'Published' : 'Draft'}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
-          </div>
-          <div className="flex items-center gap-2">
-            {error && <span className="text-sm text-[var(--color-error)] mr-2">{error}</span>}
-            {onDelete && (
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-3 py-1.5 text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-md transition-colors disabled:opacity-50"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            )}
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !frontmatter.title || !categoryId}
-              className="px-4 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={isSaving || !frontmatter.title || !categoryId}
+            className="px-4 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
 
@@ -240,23 +223,23 @@ function EntryEditorInner({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setLeftView('editor')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   leftView === 'editor'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                ✏️ Editor
+                <Pencil className="w-4 h-4" /> Editor
               </button>
               <button
                 onClick={() => setLeftView('preview')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   leftView === 'preview'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                👁 Preview
+                <Eye className="w-4 h-4" /> Preview
               </button>
             </div>
           </div>
@@ -279,29 +262,29 @@ function EntryEditorInner({
         </div>
 
         {/* Right Column: Metadata/AI (1/3 on md+) */}
-        <div className="flex-1 md:flex-none md:w-1/3 min-h-0 flex flex-col bg-[var(--color-background-secondary)]">
+        <div className="h-80 md:h-auto flex-shrink-0 md:flex-none md:w-1/3 min-h-0 flex flex-col overflow-hidden bg-[var(--color-background-secondary)]">
           {/* Right Column Header with Toggle */}
           <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setRightView('metadata')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'metadata'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                📋 Metadata
+                <ClipboardList className="w-4 h-4" /> Metadata
               </button>
               <button
                 onClick={() => setRightView('ai')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'ai'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
                 }`}
               >
-                🤖 AI Assistant
+                <Bot className="w-4 h-4" /> AI Assistant
               </button>
             </div>
           </div>
@@ -311,6 +294,11 @@ function EntryEditorInner({
             {rightView === 'metadata' ? (
               <MetadataPanel
                 frontmatter={frontmatter}
+                slug={slug}
+                setSlug={setSlug}
+                derivedSlug={derivedSlug}
+                status={status}
+                setStatus={setStatus}
                 categoryId={categoryId}
                 categories={categories}
                 updateFrontmatter={updateFrontmatter}
@@ -335,6 +323,11 @@ function EntryEditorInner({
 // Extracted Metadata Panel component for cleaner code
 interface MetadataPanelProps {
   frontmatter: EntryFrontmatter;
+  slug: string;
+  setSlug: (slug: string) => void;
+  derivedSlug: string;
+  status: 'draft' | 'published';
+  setStatus: (status: 'draft' | 'published') => void;
   categoryId: string;
   categories: CategoryTreeNode[];
   updateFrontmatter: <K extends keyof EntryFrontmatter>(
@@ -347,6 +340,11 @@ interface MetadataPanelProps {
 
 function MetadataPanel({
   frontmatter,
+  slug,
+  setSlug,
+  derivedSlug,
+  status,
+  setStatus,
   categoryId,
   categories,
   updateFrontmatter,
@@ -410,6 +408,39 @@ function MetadataPanel({
           className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           placeholder="Entry title"
         />
+      </div>
+      <div>
+        <label
+          htmlFor="slug"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Slug
+        </label>
+        <input
+          id="slug"
+          type="text"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          placeholder={derivedSlug || 'auto-generated'}
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="status"
+          className="block text-sm font-medium text-[var(--color-foreground-muted)] mb-1"
+        >
+          Status
+        </label>
+        <select
+          id="status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as 'draft' | 'published')}
+          className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+        >
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
       </div>
       <div>
         <label

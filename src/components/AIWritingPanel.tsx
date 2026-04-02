@@ -15,6 +15,8 @@
 
 import { useState, useCallback } from 'react';
 import type { EntryFrontmatter } from '@/types/entry';
+import { Search, Sparkles, PenLine, Tags, Pin } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 /**
  * Writing action types supported by the panel
@@ -39,7 +41,7 @@ interface ActionButton {
   action: WritingAction;
   label: string;
   description: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 const ACTION_BUTTONS: ActionButton[] = [
@@ -47,31 +49,31 @@ const ACTION_BUTTONS: ActionButton[] = [
     action: 'review',
     label: 'Review',
     description: 'Review content for clarity and accuracy',
-    icon: '🔍',
+    icon: Search,
   },
   {
     action: 'improve',
     label: 'Improve',
     description: 'Enhance clarity and engagement',
-    icon: '✨',
+    icon: Sparkles,
   },
   {
     action: 'expand',
     label: 'Expand',
     description: 'Add more details and examples',
-    icon: '📝',
+    icon: PenLine,
   },
   {
     action: 'suggest-tags',
     label: 'Suggest Tags',
     description: 'Suggest relevant tags for this content',
-    icon: '🏷️',
+    icon: Tags,
   },
   {
     action: 'suggest-title',
     label: 'Suggest Title',
     description: 'Suggest compelling titles',
-    icon: '📌',
+    icon: Pin,
   },
 ];
 
@@ -233,7 +235,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
   const activeArtifact = artifacts.find((a) => a.id === activeArtifactId);
 
   return (
-    <div className="h-full overflow-hidden bg-[var(--color-background-secondary)]">
+    <div className="h-full flex flex-col bg-[var(--color-background-secondary)]">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <h3 className="text-sm font-semibold text-[var(--color-foreground)]">
@@ -265,7 +267,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
                 }
               `}
             >
-              <span>{button.icon}</span>
+              <button.icon className="w-3.5 h-3.5" />
               <span>{button.label}</span>
             </button>
           ))}
@@ -315,7 +317,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
       )}
 
       {/* Artifact Content */}
-      <div className="min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {activeArtifact ? (
           <div className="p-4">
             <div className="prose prose-sm dark:prose-invert max-w-none">
