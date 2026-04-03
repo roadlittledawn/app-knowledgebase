@@ -234,6 +234,11 @@ a:not([class*='text-']):hover {
   color: var(--color-primary-hover);
 }
 
+/* Cursor pointer for all links outside .prose containers */
+a:not(.prose *) {
+  cursor: pointer;
+}
+
 /* Code block styles using tokens */
 code {
   background-color: var(--color-code-background);
