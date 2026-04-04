@@ -13,6 +13,7 @@ import { connectToDatabase } from '@/lib/db/connection';
 import { WritingConfig } from '@/lib/db/models/WritingConfig';
 import { searchPinecone } from '@/lib/search/pinecone';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { fetchDDSComponentDocs } from '@/lib/dds/fetchComponentDocs';
 import type { EntryFrontmatter } from '@/types/entry';
 
 // Requirement 16.3: Set maxDuration to 300 seconds for Vercel Fluid Compute
@@ -119,6 +120,7 @@ function buildSystemPrompt(
   personaPrompt: string | null,
   styleGuide: string,
   skillPrompt: string | null,
+  componentDocs: string | null,
   action: WritingAction,
   selection?: string
 ): string {
@@ -143,6 +145,17 @@ function buildSystemPrompt(
   // Requirement 8.7: Inject skill prompt if specified
   if (skillPrompt) {
     parts.push(`\n## Skill Instructions\n\n${skillPrompt}`);
+  }
+
+  if (componentDocs) {
+    parts.push(
+      `\n## Component Library\n\n` +
+        `Content is rendered as MDX using @roadlittledawn/docs-design-system-react.\n` +
+        `Components are globally available in MDX bodies — no import statements needed.\n` +
+        `Prefer DDS components over plain markdown equivalents where they improve clarity.\n` +
+        `Do not force-fit components for simple inline content. No hardcoded hex or Tailwind classes.\n\n` +
+        `${componentDocs}`
+    );
   }
 
   // Add action-specific instructions (Requirement 8.12 for selection context)
@@ -309,6 +322,9 @@ export async function POST(request: NextRequest) {
       })
     );
 
+    // Fetch DDS component docs for prompt injection
+    const componentDocs = await fetchDDSComponentDocs();
+
     // Build system prompt with all context
     // Requirements 8.3, 8.4, 8.6, 8.7, 8.12
     const systemPrompt = buildSystemPrompt(
@@ -316,6 +332,7 @@ export async function POST(request: NextRequest) {
       personaPrompt,
       writingConfig.styleGuide,
       null, // Skill prompt would be passed from request if specified
+      componentDocs,
       action,
       selection
     );
