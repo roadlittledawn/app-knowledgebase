@@ -194,7 +194,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
           />
         </CollapsibleSection>
 
-        <article className="max-w-3xl mx-auto px-6 py-8">
+        <article className="mx-auto px-6 py-8" style={{maxWidth: '1000px'}}>
           {/* Breadcrumbs */}
           <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
 
