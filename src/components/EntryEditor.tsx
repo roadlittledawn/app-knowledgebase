@@ -223,7 +223,7 @@ function EntryEditorInner({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setLeftView('editor')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
+                className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
                   leftView === 'editor'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
@@ -233,7 +233,7 @@ function EntryEditorInner({
               </button>
               <button
                 onClick={() => setLeftView('preview')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
+                className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
                   leftView === 'preview'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
@@ -268,7 +268,7 @@ function EntryEditorInner({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setRightView('metadata')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
+                className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'metadata'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
@@ -278,7 +278,7 @@ function EntryEditorInner({
               </button>
               <button
                 onClick={() => setRightView('ai')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
+                className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'ai'
                     ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
                     : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'

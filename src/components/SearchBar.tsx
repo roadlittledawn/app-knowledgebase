@@ -102,6 +102,7 @@ export function SearchBar({
             onClick={handleClear}
             className="
               absolute right-14 p-1
+              cursor-pointer
               text-[var(--color-foreground-muted)]
               hover:text-[var(--color-foreground)]
               transition-colors duration-150
@@ -125,6 +126,7 @@ export function SearchBar({
           disabled={isLoading || !query.trim()}
           className="
             absolute right-2 px-3 py-1.5
+            cursor-pointer
             bg-[var(--color-primary)]
             text-[var(--color-primary-foreground)]
             text-sm font-medium
