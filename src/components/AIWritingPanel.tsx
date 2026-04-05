@@ -263,7 +263,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
                 ${
                   isLoading
                     ? 'bg-[var(--color-surface)] text-[var(--color-foreground-muted)] cursor-not-allowed'
-                    : 'bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]'
+                    : 'cursor-pointer bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]'
                 }
               `}
             >
@@ -306,7 +306,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
                   e.stopPropagation();
                   closeArtifact(artifact.id);
                 }}
-                className="ml-1 text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
+                className="ml-1 cursor-pointer text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
                 aria-label="Close tab"
               >
                 ×
@@ -338,7 +338,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
         <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
           <button
             onClick={handleApply}
-            className="w-full px-4 py-2 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity"
+            className="w-full px-4 py-2 text-sm font-medium cursor-pointer bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity"
           >
             Apply to Editor
           </button>
