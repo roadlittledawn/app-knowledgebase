@@ -38,6 +38,12 @@ const defaultFrontmatter: EntryFrontmatter = {
   relatedEntries: [],
 };
 
+const TIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+};
+
 export function EntryEditor(props: EntryEditorProps) {
   return (
     <ErrorBoundary
@@ -108,6 +114,14 @@ function EntryEditorInner({
   const [selection, setSelection] = useState<string | undefined>(undefined);
   const [leftView, setLeftView] = useState<LeftPanelView>('editor');
   const [rightView, setRightView] = useState<RightPanelView>('metadata');
+
+  // Sync lastSavedAt and pineconeIndexed when entry prop changes
+  useEffect(() => {
+    if (entry?.updatedAt) {
+      setLastSavedAt(new Date(entry.updatedAt));
+    }
+    setPineconeIndexed(!!entry?.pineconeId);
+  }, [entry?.updatedAt, entry?.pineconeId]);
 
   // Cleanup save success timeout on unmount
   useEffect(() => {
@@ -233,12 +247,7 @@ function EntryEditorInner({
               )}
               {lastSavedAt && (
                 <span className="text-xs text-[var(--color-foreground-muted)]">
-                  Last saved at{' '}
-                  {lastSavedAt.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                  })}
+                  Last saved at {lastSavedAt.toLocaleTimeString([], TIME_FORMAT_OPTIONS)}
                 </span>
               )}
             </div>
