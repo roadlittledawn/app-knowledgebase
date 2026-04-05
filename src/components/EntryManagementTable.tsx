@@ -52,7 +52,15 @@ function formatRelativeTime(date: Date): string {
   return 'Just now';
 }
 
-function SortIcon({ field, activeField, order }: { field: SortField; activeField: SortField; order: SortOrder }) {
+function SortIcon({
+  field,
+  activeField,
+  order,
+}: {
+  field: SortField;
+  activeField: SortField;
+  order: SortOrder;
+}) {
   if (field !== activeField) {
     return (
       <span className="ml-1 inline-flex flex-col opacity-30">
@@ -109,10 +117,7 @@ export function EntryManagementTable() {
   useEffect(() => {
     async function fetchFilterData() {
       try {
-        const [catRes, tagRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/tags'),
-        ]);
+        const [catRes, tagRes] = await Promise.all([fetch('/api/categories'), fetch('/api/tags')]);
 
         if (catRes.ok) {
           const catData = await catRes.json();
@@ -252,9 +257,7 @@ export function EntryManagementTable() {
 
   // Additional client-side title search on the already-filtered API results
   const displayedEntries = searchText
-    ? entries.filter((e) =>
-        e.frontmatter.title.toLowerCase().includes(searchText.toLowerCase())
-      )
+    ? entries.filter((e) => e.frontmatter.title.toLowerCase().includes(searchText.toLowerCase()))
     : entries;
 
   return (
@@ -459,9 +462,7 @@ export function EntryManagementTable() {
                     {categoryMap.current.get(entry.categoryId) || '—'}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-foreground-muted)] hidden lg:table-cell max-w-[200px] truncate">
-                    {entry.frontmatter.tags.length > 0
-                      ? entry.frontmatter.tags.join(', ')
-                      : '—'}
+                    {entry.frontmatter.tags.length > 0 ? entry.frontmatter.tags.join(', ') : '—'}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-foreground-muted)] hidden sm:table-cell whitespace-nowrap">
                     {formatRelativeTime(entry.createdAt)}
@@ -519,8 +520,7 @@ export function EntryManagementTable() {
             <span className="font-medium text-[var(--color-foreground-secondary)]">
               {Math.min(currentPage * ENTRIES_PER_PAGE, total)}
             </span>{' '}
-            of{' '}
-            <span className="font-medium text-[var(--color-foreground-secondary)]">{total}</span>{' '}
+            of <span className="font-medium text-[var(--color-foreground-secondary)]">{total}</span>{' '}
             entries
           </p>
 
