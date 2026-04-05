@@ -144,10 +144,11 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams;
 
     // Parse query parameters - support multiple values for filters
-    const categoryId = searchParams.get('categoryId');
+    const categoryIds = searchParams.getAll('categoryId');
     const tags = searchParams.getAll('tag');
     const languages = searchParams.getAll('language');
     const status = searchParams.get('status') as 'draft' | 'published' | null;
+    const search = searchParams.get('search');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
     const sort = searchParams.get('sort') || '-updatedAt';
@@ -157,8 +158,8 @@ export async function GET(
       ...getVisibilityFilter(authenticated),
     };
 
-    if (categoryId) {
-      filter.categoryId = categoryId;
+    if (categoryIds.length > 0) {
+      filter.categoryId = categoryIds.length === 1 ? categoryIds[0] : { $in: categoryIds };
     }
     // Support multiple tags - entry must have ALL specified tags
     if (tags.length > 0) {
@@ -171,6 +172,11 @@ export async function GET(
     // Only allow status filter for authenticated users
     if (status && authenticated) {
       filter.status = status;
+    }
+    // Case-insensitive title search (escape regex special chars to prevent injection/errors)
+    if (search && search.trim()) {
+      const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter['frontmatter.title'] = { $regex: escapedSearch, $options: 'i' };
     }
 
     // Parse sort parameter
