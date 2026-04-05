@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Search,
@@ -76,6 +76,21 @@ function SortIcon({
   );
 }
 
+function getDescendantIds(categoryId: string, categories: ICategory[]): string[] {
+  const ids = [categoryId];
+  const queue = [categoryId];
+  while (queue.length > 0) {
+    const parentId = queue.shift()!;
+    for (const cat of categories) {
+      if (cat.parentId === parentId) {
+        ids.push(cat._id);
+        queue.push(cat._id);
+      }
+    }
+  }
+  return ids;
+}
+
 function TableSkeleton() {
   return (
     <div className="animate-pulse space-y-3">
@@ -105,7 +120,11 @@ export function EntryManagementTable() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const categoryMap = useRef<Map<string, string>>(new Map());
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach((cat) => map.set(cat._id, cat.name));
+    return map;
+  }, [categories]);
 
   // Debounce search text for server-side query
   useEffect(() => {
@@ -115,13 +134,6 @@ export function EntryManagementTable() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchText]);
-
-  // Build category lookup map
-  useEffect(() => {
-    const map = new Map<string, string>();
-    categories.forEach((cat) => map.set(cat._id, cat.name));
-    categoryMap.current = map;
-  }, [categories]);
 
   // Fetch categories and tags on mount
   useEffect(() => {
@@ -162,7 +174,11 @@ export function EntryManagementTable() {
         params.set('sort', `${sortPrefix}${sortField}`);
 
         if (statusFilter) params.set('status', statusFilter);
-        if (categoryFilter) params.set('categoryId', categoryFilter);
+        if (categoryFilter) {
+          getDescendantIds(categoryFilter, categories).forEach((id) =>
+            params.append('categoryId', id)
+          );
+        }
         if (tagFilter) params.set('tag', tagFilter);
         if (debouncedSearch) params.set('search', debouncedSearch);
 
@@ -195,19 +211,20 @@ export function EntryManagementTable() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, sortField, sortOrder, statusFilter, categoryFilter, tagFilter, debouncedSearch]);
+  }, [currentPage, sortField, sortOrder, statusFilter, categoryFilter, tagFilter, debouncedSearch, categories]);
 
-  const handleSort = useCallback((field: SortField) => {
-    setSortField((prev) => {
-      if (prev === field) {
+  const handleSort = useCallback(
+    (field: SortField) => {
+      if (field === sortField) {
         setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
-        return prev;
+      } else {
+        setSortField(field);
+        setSortOrder('desc');
       }
-      setSortOrder('desc');
-      return field;
-    });
-    setCurrentPage(1);
-  }, []);
+      setCurrentPage(1);
+    },
+    [sortField]
+  );
 
   const handleToggleStatus = useCallback(async (entry: EntryListItem) => {
     const newStatus = entry.status === 'published' ? 'draft' : 'published';
@@ -353,6 +370,12 @@ export function EntryManagementTable() {
           ))}
         </select>
 
+        {!loading && (
+          <span className="text-sm text-[var(--color-foreground-muted)] whitespace-nowrap">
+            {total} {total === 1 ? 'entry' : 'entries'}
+          </span>
+        )}
+
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
@@ -409,7 +432,7 @@ export function EntryManagementTable() {
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-foreground-secondary)]">
                   <button
                     onClick={() => handleSort('frontmatter.title')}
-                    className="inline-flex items-center hover:text-[var(--color-foreground)] transition-colors"
+                    className="inline-flex items-center cursor-pointer hover:text-[var(--color-foreground)] transition-colors"
                   >
                     Title
                     <SortIcon field="frontmatter.title" activeField={sortField} order={sortOrder} />
@@ -427,7 +450,7 @@ export function EntryManagementTable() {
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-foreground-secondary)] hidden sm:table-cell">
                   <button
                     onClick={() => handleSort('createdAt')}
-                    className="inline-flex items-center hover:text-[var(--color-foreground)] transition-colors"
+                    className="inline-flex items-center cursor-pointer hover:text-[var(--color-foreground)] transition-colors"
                   >
                     Created
                     <SortIcon field="createdAt" activeField={sortField} order={sortOrder} />
@@ -436,7 +459,7 @@ export function EntryManagementTable() {
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-foreground-secondary)]">
                   <button
                     onClick={() => handleSort('updatedAt')}
-                    className="inline-flex items-center hover:text-[var(--color-foreground)] transition-colors"
+                    className="inline-flex items-center cursor-pointer hover:text-[var(--color-foreground)] transition-colors"
                   >
                     Updated
                     <SortIcon field="updatedAt" activeField={sortField} order={sortOrder} />
@@ -475,7 +498,7 @@ export function EntryManagementTable() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-[var(--color-foreground-secondary)] hidden md:table-cell">
-                    {categoryMap.current.get(entry.categoryId) || '—'}
+                    {categoryMap.get(entry.categoryId) || '—'}
                   </td>
                   <td className="px-4 py-3 text-[var(--color-foreground-muted)] hidden lg:table-cell max-w-[200px] truncate">
                     {entry.frontmatter.tags.length > 0 ? entry.frontmatter.tags.join(', ') : '—'}
@@ -530,7 +553,7 @@ export function EntryManagementTable() {
       )}
 
       {/* Pagination */}
-      {!loading && totalPages > 0 && (
+      {!loading && totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
           <p className="text-sm text-[var(--color-foreground-muted)]">
             Showing{' '}
