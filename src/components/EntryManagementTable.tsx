@@ -88,6 +88,7 @@ function TableSkeleton() {
 
 export function EntryManagementTable() {
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'' | 'draft' | 'published'>('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [tagFilter, setTagFilter] = useState('');
@@ -105,6 +106,15 @@ export function EntryManagementTable() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const categoryMap = useRef<Map<string, string>>(new Map());
+
+  // Debounce search text for server-side query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchText);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   // Build category lookup map
   useEffect(() => {
@@ -135,7 +145,7 @@ export function EntryManagementTable() {
     fetchFilterData();
   }, []);
 
-  // Fetch entries when filters/sort/page change
+  // Fetch entries when filters/sort/page/search change
   useEffect(() => {
     let cancelled = false;
 
@@ -154,6 +164,7 @@ export function EntryManagementTable() {
         if (statusFilter) params.set('status', statusFilter);
         if (categoryFilter) params.set('categoryId', categoryFilter);
         if (tagFilter) params.set('tag', tagFilter);
+        if (debouncedSearch) params.set('search', debouncedSearch);
 
         const res = await fetch(`/api/entries?${params.toString()}`);
 
@@ -184,7 +195,7 @@ export function EntryManagementTable() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, sortField, sortOrder, statusFilter, categoryFilter, tagFilter]);
+  }, [currentPage, sortField, sortOrder, statusFilter, categoryFilter, tagFilter, debouncedSearch]);
 
   const handleSort = useCallback((field: SortField) => {
     setSortField((prev) => {
@@ -221,29 +232,39 @@ export function EntryManagementTable() {
     }
   }, []);
 
-  const handleDelete = useCallback(async (entry: EntryListItem) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${entry.frontmatter.title}"? This action cannot be undone.`
-    );
-    if (!confirmed) return;
+  const handleDelete = useCallback(
+    async (entry: EntryListItem) => {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${entry.frontmatter.title}"? This action cannot be undone.`
+      );
+      if (!confirmed) return;
 
-    setActionLoading(entry._id);
+      setActionLoading(entry._id);
 
-    try {
-      const res = await fetch(`/api/entries/${entry._id}`, {
-        method: 'DELETE',
-      });
+      try {
+        const res = await fetch(`/api/entries/${entry._id}`, {
+          method: 'DELETE',
+        });
 
-      if (!res.ok) throw new Error('Failed to delete entry');
+        if (!res.ok) throw new Error('Failed to delete entry');
 
-      setEntries((prev) => prev.filter((e) => e._id !== entry._id));
-      setTotal((prev) => prev - 1);
-    } catch {
-      setError('Failed to delete entry. Please try again.');
-    } finally {
-      setActionLoading(null);
-    }
-  }, []);
+        setEntries((prev) => {
+          const remaining = prev.filter((e) => e._id !== entry._id);
+          // Navigate to previous page if the current page becomes empty
+          if (remaining.length === 0 && currentPage > 1) {
+            setCurrentPage((p) => p - 1);
+          }
+          return remaining;
+        });
+        setTotal((prev) => prev - 1);
+      } catch {
+        setError('Failed to delete entry. Please try again.');
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [currentPage]
+  );
 
   const clearFilters = useCallback(() => {
     setSearchText('');
@@ -254,11 +275,6 @@ export function EntryManagementTable() {
   }, []);
 
   const hasActiveFilters = searchText || statusFilter || categoryFilter || tagFilter;
-
-  // Additional client-side title search on the already-filtered API results
-  const displayedEntries = searchText
-    ? entries.filter((e) => e.frontmatter.title.toLowerCase().includes(searchText.toLowerCase()))
-    : entries;
 
   return (
     <div className="space-y-4">
@@ -366,7 +382,7 @@ export function EntryManagementTable() {
       {/* Table */}
       {loading ? (
         <TableSkeleton />
-      ) : displayedEntries.length === 0 ? (
+      ) : entries.length === 0 ? (
         <div className="text-center py-16 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]">
           <p className="text-[var(--color-foreground-muted)] text-lg">No entries found</p>
           <p className="text-[var(--color-foreground-muted)] text-sm mt-1">
@@ -432,7 +448,7 @@ export function EntryManagementTable() {
               </tr>
             </thead>
             <tbody>
-              {displayedEntries.map((entry, index) => (
+              {entries.map((entry, index) => (
                 <tr
                   key={entry._id}
                   className={`border-b border-[var(--color-border)] last:border-b-0 hover:bg-[var(--color-surface-hover)] transition-colors ${

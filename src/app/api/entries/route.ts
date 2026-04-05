@@ -148,6 +148,7 @@ export async function GET(
     const tags = searchParams.getAll('tag');
     const languages = searchParams.getAll('language');
     const status = searchParams.get('status') as 'draft' | 'published' | null;
+    const search = searchParams.get('search');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
     const sort = searchParams.get('sort') || '-updatedAt';
@@ -171,6 +172,10 @@ export async function GET(
     // Only allow status filter for authenticated users
     if (status && authenticated) {
       filter.status = status;
+    }
+    // Case-insensitive title search
+    if (search && search.trim()) {
+      filter['frontmatter.title'] = { $regex: search.trim(), $options: 'i' };
     }
 
     // Parse sort parameter
