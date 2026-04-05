@@ -250,8 +250,8 @@ export function EntryManagementTable() {
 
   const hasActiveFilters = searchText || statusFilter || categoryFilter || tagFilter;
 
-  // Client-side title search on fetched results
-  const filteredEntries = searchText
+  // Additional client-side title search on the already-filtered API results
+  const displayedEntries = searchText
     ? entries.filter((e) =>
         e.frontmatter.title.toLowerCase().includes(searchText.toLowerCase())
       )
@@ -363,7 +363,7 @@ export function EntryManagementTable() {
       {/* Table */}
       {loading ? (
         <TableSkeleton />
-      ) : filteredEntries.length === 0 ? (
+      ) : displayedEntries.length === 0 ? (
         <div className="text-center py-16 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]">
           <p className="text-[var(--color-foreground-muted)] text-lg">No entries found</p>
           <p className="text-[var(--color-foreground-muted)] text-sm mt-1">
@@ -429,7 +429,7 @@ export function EntryManagementTable() {
               </tr>
             </thead>
             <tbody>
-              {filteredEntries.map((entry, index) => (
+              {displayedEntries.map((entry, index) => (
                 <tr
                   key={entry._id}
                   className={`border-b border-[var(--color-border)] last:border-b-0 hover:bg-[var(--color-surface-hover)] transition-colors ${
