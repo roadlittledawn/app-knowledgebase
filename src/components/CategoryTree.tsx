@@ -55,7 +55,7 @@ function CategoryNode({
         onClick={handleClick}
         className={`
           w-full flex items-center gap-2 px-3 py-2 text-left text-sm rounded-md
-          transition-colors duration-150
+          cursor-pointer transition-colors duration-150
           ${
             isSelected
               ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
@@ -161,7 +161,7 @@ export function CategoryTree({ tree, selectedCategoryId, onSelect }: CategoryTre
         onClick={handleSelectAll}
         className={`
           w-full flex items-center gap-2 px-3 py-2 text-left text-sm rounded-md
-          transition-colors duration-150 font-medium
+          cursor-pointer transition-colors duration-150 font-medium
           ${
             !selectedCategoryId
               ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
