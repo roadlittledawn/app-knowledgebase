@@ -38,7 +38,9 @@ const defaultFrontmatter: EntryFrontmatter = {
   relatedEntries: [],
 };
 
-const TIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+const DATETIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
   second: '2-digit',
@@ -249,7 +251,7 @@ function EntryEditorInner({
               )}
               {lastSavedAt && (
                 <span className="text-xs text-[var(--color-foreground-muted)]">
-                  Last saved at {lastSavedAt.toLocaleTimeString([], TIME_FORMAT_OPTIONS)}
+                  Last saved {lastSavedAt.toLocaleString([], DATETIME_FORMAT_OPTIONS)}
                 </span>
               )}
             </div>
@@ -276,7 +278,7 @@ function EntryEditorInner({
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="px-3 py-1.5 text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-md transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-md transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
@@ -284,7 +286,7 @@ function EntryEditorInner({
           <button
             onClick={handleSave}
             disabled={isSaving || !frontmatter.title || !categoryId}
-            className="px-4 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+            className="px-4 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
           >
             {isSaving ? (
               <>
