@@ -10,20 +10,20 @@
  * - Stacked on small screens
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { useTheme } from './ThemeProvider';
-import { Pencil, Eye, ClipboardList, Bot } from 'lucide-react';
+import { Pencil, Eye, ClipboardList, Bot, Check, Loader2, Database } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
   entry?: IEntry;
   categories: CategoryTreeNode[];
-  onSave: (entry: Partial<IEntry>) => Promise<void>;
+  onSave: (entry: Partial<IEntry>) => Promise<IEntry | void>;
   onDelete?: () => Promise<void>;
 }
 
@@ -99,9 +99,24 @@ function EntryEditorInner({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(
+    entry?.updatedAt ? new Date(entry.updatedAt) : null
+  );
+  const [pineconeIndexed, setPineconeIndexed] = useState<boolean>(!!entry?.pineconeId);
+  const saveSuccessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selection, setSelection] = useState<string | undefined>(undefined);
   const [leftView, setLeftView] = useState<LeftPanelView>('editor');
   const [rightView, setRightView] = useState<RightPanelView>('metadata');
+
+  // Cleanup save success timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveSuccessTimeout.current) {
+        clearTimeout(saveSuccessTimeout.current);
+      }
+    };
+  }, []);
 
   // Handle new category creation - add to local state
   const handleCategoryCreated = useCallback(
@@ -135,8 +150,12 @@ function EntryEditorInner({
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     setError(null);
+    setSaveSuccess(false);
+    if (saveSuccessTimeout.current) {
+      clearTimeout(saveSuccessTimeout.current);
+    }
     try {
-      await onSave({
+      const result = await onSave({
         ...(entry?._id && { _id: entry._id }),
         slug: slug || undefined,
         categoryId,
@@ -144,6 +163,14 @@ function EntryEditorInner({
         frontmatter,
         body,
       });
+      setSaveSuccess(true);
+      setLastSavedAt(new Date());
+      if (result) {
+        setPineconeIndexed(!!result.pineconeId);
+      }
+      saveSuccessTimeout.current = setTimeout(() => {
+        setSaveSuccess(false);
+      }, 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save entry');
     } finally {
@@ -195,6 +222,45 @@ function EntryEditorInner({
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-4 py-3 flex items-center justify-end gap-2">
           {error && <span className="text-sm text-[var(--color-error)] mr-2">{error}</span>}
+          {/* Save status indicators */}
+          {!error && (saveSuccess || lastSavedAt) && (
+            <div className="flex items-center gap-2 mr-2">
+              {saveSuccess && (
+                <span className="inline-flex items-center gap-1 text-sm text-[var(--color-success,#22c55e)] animate-fade-in">
+                  <Check className="w-4 h-4" />
+                  Saved
+                </span>
+              )}
+              {lastSavedAt && (
+                <span className="text-xs text-[var(--color-foreground-muted)]">
+                  Last saved at{' '}
+                  {lastSavedAt.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  })}
+                </span>
+              )}
+            </div>
+          )}
+          {/* Pinecone indexing status */}
+          {entry && (
+            <span
+              className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                pineconeIndexed
+                  ? 'bg-[var(--color-success,#22c55e)]/10 text-[var(--color-success,#22c55e)]'
+                  : 'bg-[var(--color-foreground-muted)]/10 text-[var(--color-foreground-muted)]'
+              }`}
+              title={
+                pineconeIndexed
+                  ? 'This entry is indexed in Pinecone for semantic search'
+                  : 'This entry is not indexed in Pinecone (publish to index)'
+              }
+            >
+              <Database className="w-3 h-3" />
+              {pineconeIndexed ? 'Indexed' : 'Not indexed'}
+            </span>
+          )}
           {onDelete && (
             <button
               onClick={handleDelete}
@@ -207,9 +273,16 @@ function EntryEditorInner({
           <button
             onClick={handleSave}
             disabled={isSaving || !frontmatter.title || !categoryId}
-            className="px-4 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              'Save'
+            )}
           </button>
         </div>
       </div>
