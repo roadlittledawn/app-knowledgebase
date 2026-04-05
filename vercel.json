@@ -2,10 +2,10 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "installCommand": "npm ci",
+  "ignoreCommand": "bash scripts/should-build.sh",
   "git": {
     "deploymentEnabled": {
-      "main": true,
-      "develop": true
+      "main": true
     }
   }
 }
