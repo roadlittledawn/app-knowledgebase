@@ -292,7 +292,7 @@ export default function BrowsePage() {
                 <span className="text-sm text-[var(--color-foreground-muted)]">Search results</span>
                 <button
                   onClick={handleClearSearch}
-                  className="text-sm text-[var(--color-primary)] hover:underline"
+                  className="text-sm cursor-pointer text-[var(--color-primary)] hover:underline"
                 >
                   Clear search
                 </button>
@@ -347,7 +347,7 @@ export default function BrowsePage() {
                         <button
                           onClick={() => setPage((p) => Math.max(1, p - 1))}
                           disabled={page === 1}
-                          className="px-3 py-1.5 text-sm rounded-md border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-surface-hover)]"
+                          className="px-3 py-1.5 text-sm rounded-md border border-[var(--color-border)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-surface-hover)]"
                         >
                           Previous
                         </button>
@@ -357,7 +357,7 @@ export default function BrowsePage() {
                         <button
                           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                           disabled={page === totalPages}
-                          className="px-3 py-1.5 text-sm rounded-md border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-surface-hover)]"
+                          className="px-3 py-1.5 text-sm rounded-md border border-[var(--color-border)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-surface-hover)]"
                         >
                           Next
                         </button>

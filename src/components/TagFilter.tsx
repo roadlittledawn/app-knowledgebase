@@ -51,7 +51,7 @@ function FilterDropdown({ section }: { section: FilterSection }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`
           flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border
-          transition-colors
+          cursor-pointer transition-colors
           ${
             selectedCount > 0
               ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] text-[var(--color-primary)]'
@@ -95,7 +95,7 @@ function FilterDropdown({ section }: { section: FilterSection }) {
                     onClick={() => section.onToggle(item)}
                     className={`
                       w-full flex items-center gap-2 px-3 py-2 text-sm text-left
-                      hover:bg-[var(--color-surface-hover)]
+                      cursor-pointer hover:bg-[var(--color-surface-hover)]
                       ${isSelected ? 'text-[var(--color-primary)]' : 'text-[var(--color-foreground)]'}
                     `}
                     role="option"

@@ -88,6 +88,7 @@ export default function EditEntryPage() {
 
       const { entry: updatedEntry } = await res.json();
       setEntry(updatedEntry);
+      return updatedEntry;
     },
     [entryId]
   );
