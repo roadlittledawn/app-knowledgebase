@@ -119,6 +119,8 @@ function EntryEditorInner({
   useEffect(() => {
     if (entry?.updatedAt) {
       setLastSavedAt(new Date(entry.updatedAt));
+    } else {
+      setLastSavedAt(null);
     }
     setPineconeIndexed(!!entry?.pineconeId);
   }, [entry?.updatedAt, entry?.pineconeId]);
