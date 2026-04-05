@@ -492,6 +492,7 @@ export function EntryManagementTable() {
                         href={`/entries/${entry._id}/edit`}
                         className="p-1.5 rounded-md text-[var(--color-foreground-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-active)] transition-colors"
                         title="Edit entry"
+                        aria-label={`Edit ${entry.frontmatter.title}`}
                       >
                         <Pencil size={16} />
                       </Link>
@@ -500,6 +501,9 @@ export function EntryManagementTable() {
                         disabled={actionLoading === entry._id}
                         className="p-1.5 rounded-md text-[var(--color-foreground-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-active)] transition-colors disabled:opacity-50"
                         title={entry.status === 'published' ? 'Unpublish' : 'Publish'}
+                        aria-label={
+                          entry.status === 'published' ? 'Unpublish entry' : 'Publish entry'
+                        }
                       >
                         {entry.status === 'published' ? (
                           <XCircle size={16} />
@@ -512,6 +516,7 @@ export function EntryManagementTable() {
                         disabled={actionLoading === entry._id}
                         className="p-1.5 rounded-md text-[var(--color-foreground-muted)] hover:text-[var(--color-error)] hover:bg-[var(--color-error-background)] transition-colors disabled:opacity-50"
                         title="Delete entry"
+                        aria-label={`Delete ${entry.frontmatter.title}`}
                       >
                         <Trash2 size={16} />
                       </button>
