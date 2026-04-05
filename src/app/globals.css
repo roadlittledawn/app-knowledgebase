@@ -1,5 +1,21 @@
 @import 'tailwindcss';
 
+/* Custom animation utilities */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
 /**
  * Theme CSS Custom Properties
  *
@@ -233,6 +249,12 @@ a:not([class*='text-']) {
 a:not([class*='text-']):hover {
   color: var(--color-primary-hover);
 }
+
+/* Cursor pointer for all links outside .prose containers */
+a:not(.prose *) {
+  cursor: pointer;
+}
+
 
 /* Code block styles using tokens */
 code {

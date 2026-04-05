@@ -22,7 +22,7 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-[var(--color-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] ${className}`}
+      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md cursor-pointer transition-colors hover:bg-[var(--color-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] ${className}`}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
