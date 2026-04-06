@@ -9,7 +9,7 @@
  *   (title, tags, languages, skillLevel, needsHelp, isPrivate, resources, relatedEntries)
  */
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { EntryFrontmatter, Resource } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
 
@@ -35,6 +35,28 @@ export function FrontmatterForm({
     },
     [frontmatter, onChange]
   );
+
+  // Local text state for comma-separated inputs so users can type commas
+  // without the trailing separator being stripped by filter(Boolean)
+  const [tagsText, setTagsText] = useState(frontmatter.tags.join(', '));
+  const [languagesText, setLanguagesText] = useState(frontmatter.languages.join(', '));
+
+  // Sync from external frontmatter changes
+  useEffect(() => {
+    const currentParsed = tagsText.split(',').map((s) => s.trim()).filter(Boolean);
+    if (JSON.stringify(currentParsed) !== JSON.stringify(frontmatter.tags)) {
+      setTagsText(frontmatter.tags.join(', '));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frontmatter.tags]);
+
+  useEffect(() => {
+    const currentParsed = languagesText.split(',').map((s) => s.trim()).filter(Boolean);
+    if (JSON.stringify(currentParsed) !== JSON.stringify(frontmatter.languages)) {
+      setLanguagesText(frontmatter.languages.join(', '));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frontmatter.languages]);
 
   // Handle adding a new resource
   const addResource = useCallback(() => {
@@ -142,16 +164,21 @@ export function FrontmatterForm({
           <input
             id="frontmatter-tags"
             type="text"
-            value={frontmatter.tags.join(', ')}
-            onChange={(e) =>
+            value={tagsText}
+            onChange={(e) => {
+              setTagsText(e.target.value);
               updateField(
                 'tags',
                 e.target.value
                   .split(',')
                   .map((s) => s.trim())
                   .filter(Boolean)
-              )
-            }
+              );
+            }}
+            onBlur={() => {
+              const parsed = tagsText.split(',').map((s) => s.trim()).filter(Boolean);
+              setTagsText(parsed.join(', '));
+            }}
             className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             placeholder="Comma-separated tags"
           />
@@ -168,16 +195,21 @@ export function FrontmatterForm({
           <input
             id="frontmatter-languages"
             type="text"
-            value={frontmatter.languages.join(', ')}
-            onChange={(e) =>
+            value={languagesText}
+            onChange={(e) => {
+              setLanguagesText(e.target.value);
               updateField(
                 'languages',
                 e.target.value
                   .split(',')
                   .map((s) => s.trim())
                   .filter(Boolean)
-              )
-            }
+              );
+            }}
+            onBlur={() => {
+              const parsed = languagesText.split(',').map((s) => s.trim()).filter(Boolean);
+              setLanguagesText(parsed.join(', '));
+            }}
             className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             placeholder="Comma-separated languages"
           />

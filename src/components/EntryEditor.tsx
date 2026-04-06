@@ -443,6 +443,28 @@ function MetadataPanel({
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [categoryError, setCategoryError] = useState<string | null>(null);
 
+  // Local text state for comma-separated inputs so users can type commas
+  // without the trailing separator being stripped by filter(Boolean)
+  const [tagsText, setTagsText] = useState(frontmatter.tags.join(', '));
+  const [languagesText, setLanguagesText] = useState(frontmatter.languages.join(', '));
+
+  // Sync from external frontmatter changes (e.g. AI panel)
+  useEffect(() => {
+    const currentParsed = tagsText.split(',').map((s) => s.trim()).filter(Boolean);
+    if (JSON.stringify(currentParsed) !== JSON.stringify(frontmatter.tags)) {
+      setTagsText(frontmatter.tags.join(', '));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frontmatter.tags]);
+
+  useEffect(() => {
+    const currentParsed = languagesText.split(',').map((s) => s.trim()).filter(Boolean);
+    if (JSON.stringify(currentParsed) !== JSON.stringify(frontmatter.languages)) {
+      setLanguagesText(frontmatter.languages.join(', '));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frontmatter.languages]);
+
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) return;
 
@@ -627,16 +649,21 @@ function MetadataPanel({
         <input
           id="tags"
           type="text"
-          value={frontmatter.tags.join(', ')}
-          onChange={(e) =>
+          value={tagsText}
+          onChange={(e) => {
+            setTagsText(e.target.value);
             updateFrontmatter(
               'tags',
               e.target.value
                 .split(',')
                 .map((s) => s.trim())
                 .filter(Boolean)
-            )
-          }
+            );
+          }}
+          onBlur={() => {
+            const parsed = tagsText.split(',').map((s) => s.trim()).filter(Boolean);
+            setTagsText(parsed.join(', '));
+          }}
           className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           placeholder="Comma-separated tags"
         />
@@ -651,16 +678,21 @@ function MetadataPanel({
         <input
           id="languages"
           type="text"
-          value={frontmatter.languages.join(', ')}
-          onChange={(e) =>
+          value={languagesText}
+          onChange={(e) => {
+            setLanguagesText(e.target.value);
             updateFrontmatter(
               'languages',
               e.target.value
                 .split(',')
                 .map((s) => s.trim())
                 .filter(Boolean)
-            )
-          }
+            );
+          }}
+          onBlur={() => {
+            const parsed = languagesText.split(',').map((s) => s.trim()).filter(Boolean);
+            setLanguagesText(parsed.join(', '));
+          }}
           className="w-full px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           placeholder="Comma-separated languages"
         />
