@@ -17,6 +17,18 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { CategoryTreeNode } from '@/types/category';
 import { ChevronRight, ChevronDown, Plus, Search, X, Check, FolderTree } from 'lucide-react';
 
+const ENTRY_COUNT_BADGE_CLASS =
+  'text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-surface)] text-[var(--color-foreground-muted)]';
+
+function EntryCountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return <span className={ENTRY_COUNT_BADGE_CLASS}>{count}</span>;
+}
+
+function SelectedCheck() {
+  return <Check className="w-4 h-4 text-[var(--color-primary)] flex-shrink-0" />;
+}
+
 interface CategorySelectorProps {
   tree: CategoryTreeNode[];
   selectedCategoryId: string;
@@ -434,14 +446,8 @@ export function CategorySelector({
                         </div>
                       )}
                     </div>
-                    {cat.entryCount > 0 && (
-                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-surface)] text-[var(--color-foreground-muted)]">
-                        {cat.entryCount}
-                      </span>
-                    )}
-                    {cat._id === selectedCategoryId && (
-                      <Check className="w-4 h-4 text-[var(--color-primary)] flex-shrink-0" />
-                    )}
+                    <EntryCountBadge count={cat.entryCount} />
+                    {cat._id === selectedCategoryId && <SelectedCheck />}
                   </button>
                 ))
               ) : (
@@ -626,14 +632,10 @@ function TreeNode({
         <span className="flex-1 truncate">{node.name}</span>
 
         {/* Entry count */}
-        {node.entryCount > 0 && (
-          <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-surface)] text-[var(--color-foreground-muted)]">
-            {node.entryCount}
-          </span>
-        )}
+        <EntryCountBadge count={node.entryCount} />
 
         {/* Selected check */}
-        {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}
+        {isSelected && <SelectedCheck />}
 
         {/* Add child button */}
         {canCreate && (
