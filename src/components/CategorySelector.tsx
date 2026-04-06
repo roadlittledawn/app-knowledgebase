@@ -491,21 +491,23 @@ export function CategorySelector({
             <div className="flex-shrink-0 border-t border-[var(--color-border)]">
               {showCreateForm ? (
                 <div className="p-2 space-y-2">
-                  {createParentId && (
-                    <div className="text-xs text-[var(--color-foreground-muted)]">
-                      Creating under:{' '}
-                      <span className="font-medium">
-                        {findCategoryById(tree, createParentId)?.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setCreateParentId(null)}
-                        className="ml-1 text-[var(--color-primary)] hover:underline"
-                      >
-                        (change to root)
-                      </button>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--color-foreground-muted)] mb-1">
+                      Parent category
+                    </label>
+                    <select
+                      value={createParentId ?? ''}
+                      onChange={(e) => setCreateParentId(e.target.value || null)}
+                      className="w-full px-2 py-1.5 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                    >
+                      <option value="">None (top-level)</option>
+                      {flatCategories.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                          {cat.fullPath}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="flex gap-1.5">
                     <input
                       ref={createInputRef}
