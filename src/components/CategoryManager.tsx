@@ -2,10 +2,11 @@
 
 /**
  * CategoryManager Component
- * Admin component for managing categories with CRUD and reordering
+ * Admin component for managing categories with CRUD, reordering, and restructuring
  *
  * Requirements: 3.10
- * - 3.10: Provide a category management UI for creating, renaming, reordering, and deleting categories
+ * - 3.10: Provide a category management UI for creating, renaming, reordering,
+ *         moving (reparenting), and deleting categories
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -36,12 +37,66 @@ interface CategoryManagerProps {
   onRefresh: () => Promise<void>;
 }
 
+/** Flattened category for move parent picker */
+interface FlatCategory {
+  _id: string;
+  name: string;
+  depth: number;
+}
+
+/** Collect all descendant IDs (including self) from a tree node */
+function collectDescendantIds(node: CategoryTreeNode): Set<string> {
+  const ids = new Set<string>();
+  ids.add(node._id);
+  for (const child of node.children) {
+    for (const id of collectDescendantIds(child)) {
+      ids.add(id);
+    }
+  }
+  return ids;
+}
+
+/** Flatten a tree into a list with depth info */
+function flattenTree(nodes: CategoryTreeNode[], depth = 0): FlatCategory[] {
+  const result: FlatCategory[] = [];
+  for (const node of nodes) {
+    result.push({ _id: node._id, name: node.name, depth });
+    result.push(...flattenTree(node.children, depth + 1));
+  }
+  return result;
+}
+
+/** Find a node by ID in the tree */
+function findNodeById(nodes: CategoryTreeNode[], id: string): CategoryTreeNode | null {
+  for (const node of nodes) {
+    if (node._id === id) return node;
+    const found = findNodeById(node.children, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Find the parent ID of a node in the tree */
+function findParentId(
+  nodes: CategoryTreeNode[],
+  targetId: string,
+  parentId: string | null = null
+): string | null | undefined {
+  for (const node of nodes) {
+    if (node._id === targetId) return parentId;
+    const found = findParentId(node.children, targetId, node._id);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
 interface CategoryNodeProps {
   node: CategoryTreeNode;
   level: number;
   expandedIds: Set<string>;
   editingId: string | null;
   deletingId: string | null;
+  movingId: string | null;
   onToggle: (categoryId: string) => void;
   onStartEdit: (categoryId: string) => void;
   onCancelEdit: () => void;
@@ -51,6 +106,7 @@ interface CategoryNodeProps {
   onCancelDelete: () => void;
   onMoveUp: (categoryId: string, currentOrder: number) => void;
   onMoveDown: (categoryId: string, currentOrder: number) => void;
+  onStartMove: (categoryId: string) => void;
   onStartCreate: (parentId: string | null) => void;
   creatingParentId: string | null | undefined;
   onCancelCreate: () => void;
@@ -65,6 +121,7 @@ function CategoryNode({
   expandedIds,
   editingId,
   deletingId,
+  movingId,
   onToggle,
   onStartEdit,
   onCancelEdit,
@@ -74,6 +131,7 @@ function CategoryNode({
   onCancelDelete,
   onMoveUp,
   onMoveDown,
+  onStartMove,
   onStartCreate,
   creatingParentId,
   onCancelCreate,
@@ -284,6 +342,27 @@ function CategoryNode({
                 </svg>
               </button>
 
+              {/* Move to different parent */}
+              <button
+                type="button"
+                onClick={() => onStartMove(node._id)}
+                className={`p-1 rounded ${
+                  movingId === node._id
+                    ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface)]'
+                }`}
+                title="Move to different parent"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                  />
+                </svg>
+              </button>
+
               {/* Edit */}
               <button
                 type="button"
@@ -334,6 +413,7 @@ function CategoryNode({
               expandedIds={expandedIds}
               editingId={editingId}
               deletingId={deletingId}
+              movingId={movingId}
               onToggle={onToggle}
               onStartEdit={onStartEdit}
               onCancelEdit={onCancelEdit}
@@ -343,6 +423,7 @@ function CategoryNode({
               onCancelDelete={onCancelDelete}
               onMoveUp={onMoveUp}
               onMoveDown={onMoveDown}
+              onStartMove={onStartMove}
               onStartCreate={onStartCreate}
               creatingParentId={creatingParentId}
               onCancelCreate={onCancelCreate}
@@ -571,6 +652,82 @@ export function CategoryManager({
     [onCreateCategory, creatingParentId, onRefresh]
   );
 
+  // --- Move (reparent) handlers ---
+  const [movingId, setMovingId] = useState<string | null>(null);
+  const [selectedNewParentId, setSelectedNewParentId] = useState<string | null | undefined>(
+    undefined
+  );
+  const [isMoving, setIsMoving] = useState(false);
+
+  const handleStartMove = useCallback(
+    (categoryId: string) => {
+      // Toggle off if already moving this category
+      if (movingId === categoryId) {
+        setMovingId(null);
+        setSelectedNewParentId(undefined);
+        return;
+      }
+      setMovingId(categoryId);
+      setEditingId(null);
+      setDeletingId(null);
+      setCreatingParentId(undefined);
+      // Pre-select the current parent
+      const currentParentId = findParentId(tree, categoryId);
+      setSelectedNewParentId(currentParentId ?? null);
+    },
+    [movingId, tree]
+  );
+
+  const handleCancelMove = useCallback(() => {
+    setMovingId(null);
+    setSelectedNewParentId(undefined);
+  }, []);
+
+  const handleConfirmMove = useCallback(async () => {
+    if (!movingId || selectedNewParentId === undefined) return;
+
+    // Check if the parent is actually changing
+    const currentParentId = findParentId(tree, movingId);
+    if (selectedNewParentId === currentParentId) {
+      setMovingId(null);
+      setSelectedNewParentId(undefined);
+      return;
+    }
+
+    try {
+      setError(null);
+      setIsMoving(true);
+      await onUpdateCategory(movingId, { parentId: selectedNewParentId });
+      setMovingId(null);
+      setSelectedNewParentId(undefined);
+      await onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to move category');
+    } finally {
+      setIsMoving(false);
+    }
+  }, [movingId, selectedNewParentId, tree, onUpdateCategory, onRefresh]);
+
+  // Compute valid parent options for the moving category
+  const moveOptions = (() => {
+    if (!movingId) return [];
+    const movingNode = findNodeById(tree, movingId);
+    if (!movingNode) return [];
+    const excludedIds = collectDescendantIds(movingNode);
+    const flat = flattenTree(tree);
+    return flat.filter((c) => !excludedIds.has(c._id));
+  })();
+
+  const movingNode = movingId ? findNodeById(tree, movingId) : null;
+  const currentParentIdOfMoving = movingId ? (findParentId(tree, movingId) ?? null) : null;
+  const selectedParentName = (() => {
+    if (selectedNewParentId === undefined || selectedNewParentId === null) return null;
+    const node = findNodeById(tree, selectedNewParentId);
+    return node?.name ?? null;
+  })();
+  const isParentChanged =
+    selectedNewParentId !== undefined && selectedNewParentId !== currentParentIdOfMoving;
+
   const isCreatingAtRoot = creatingParentId === null;
 
   return (
@@ -595,6 +752,80 @@ export function CategoryManager({
         </div>
       )}
 
+      {/* Move panel — shown when a category is selected for moving */}
+      {movingId && movingNode && (
+        <div className="mb-4 p-4 bg-[var(--color-background-secondary)] border border-[var(--color-border)] rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-[var(--color-foreground)]">
+              Move &quot;{movingNode.name}&quot;
+            </h4>
+            <button
+              type="button"
+              onClick={handleCancelMove}
+              className="text-xs text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="mb-3">
+            <label
+              htmlFor="move-parent-select"
+              className="block text-xs text-[var(--color-foreground-muted)] mb-1"
+            >
+              Select new parent:
+            </label>
+            <select
+              id="move-parent-select"
+              value={selectedNewParentId ?? '__root__'}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedNewParentId(val === '__root__' ? null : val);
+              }}
+              className="w-full px-3 py-2 text-sm bg-[var(--color-input)] border border-[var(--color-input-border)] text-[var(--color-foreground)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+              <option value="__root__">— Root level (no parent) —</option>
+              {moveOptions.map((opt) => (
+                <option key={opt._id} value={opt._id} aria-label={`${opt.name}, depth level ${opt.depth}`}>
+                  {'│ '.repeat(opt.depth)}
+                  {opt.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {isParentChanged && (
+            <p className="text-xs text-[var(--color-foreground-muted)] mb-3">
+              &quot;{movingNode.name}&quot; will be moved{' '}
+              {selectedNewParentId === null ? (
+                'to the root level'
+              ) : (
+                <>
+                  under &quot;{selectedParentName}&quot;
+                </>
+              )}
+              .
+            </p>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleConfirmMove}
+              disabled={!isParentChanged || isMoving}
+              className="px-3 py-1.5 text-sm bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isMoving ? 'Moving…' : 'Confirm Move'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelMove}
+              disabled={isMoving}
+              className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-md hover:bg-[var(--color-surface-hover)] transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-0.5">
         {tree.map((node, index) => (
           <CategoryNode
@@ -604,6 +835,7 @@ export function CategoryManager({
             expandedIds={expandedIds}
             editingId={editingId}
             deletingId={deletingId}
+            movingId={movingId}
             onToggle={handleToggle}
             onStartEdit={handleStartEdit}
             onCancelEdit={handleCancelEdit}
@@ -613,6 +845,7 @@ export function CategoryManager({
             onCancelDelete={handleCancelDelete}
             onMoveUp={handleMoveUp}
             onMoveDown={handleMoveDown}
+            onStartMove={handleStartMove}
             onStartCreate={handleStartCreate}
             creatingParentId={creatingParentId}
             onCancelCreate={handleCancelCreate}
