@@ -24,6 +24,7 @@ import { CategoryNavSidebar } from '@/components/CategoryNavSidebar';
 import { MDXContent } from '@/components/mdx/MDXContent';
 import { MobileDrawer } from '@/components/MobileDrawer';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
+import { OnThisPage } from '@/components/OnThisPage';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
 
@@ -194,7 +195,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
           />
         </CollapsibleSection>
 
-        <article className="mx-auto px-6 py-8" style={{maxWidth: '1000px'}}>
+        <article className="mx-auto px-6 py-8" style={{ maxWidth: '1000px' }}>
           {/* Breadcrumbs */}
           <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
 
@@ -228,8 +229,11 @@ export default async function EntryDetailPage({ params }: PageProps) {
         </article>
       </main>
 
-      {/* Right sidebar — entry metadata */}
+      {/* Right sidebar — on this page + entry metadata */}
       <aside className="hidden xl:flex xl:flex-col w-72 flex-shrink-0 border-l border-[var(--color-border)] overflow-y-auto">
+        <div className="p-5 pb-0">
+          <OnThisPage />
+        </div>
         <EntrySidebar
           entry={sidebarEntry}
           relatedEntries={relatedEntries}

@@ -26,6 +26,7 @@ import {
   TabList,
   TabPanel,
   CodePlayground,
+  Heading,
 } from '@/mdx-components';
 import type { ReactNode, ReactElement } from 'react';
 
@@ -49,6 +50,22 @@ function extractTextContent(children: ReactNode): string {
   return '';
 }
 
+/**
+ * Generate a URL-safe slug from a text string
+ */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+interface HeadingElementProps {
+  children?: ReactNode;
+}
+
 interface CodeElementProps {
   className?: string;
   children?: ReactNode;
@@ -60,6 +77,24 @@ interface PreProps {
 }
 
 const components = {
+  h2: ({ children }: HeadingElementProps) => {
+    const text = extractTextContent(children);
+    const id = slugify(text) || undefined;
+    return (
+      <Heading level={2} id={id}>
+        {children}
+      </Heading>
+    );
+  },
+  h3: ({ children }: HeadingElementProps) => {
+    const text = extractTextContent(children);
+    const id = slugify(text) || undefined;
+    return (
+      <Heading level={3} id={id}>
+        {children}
+      </Heading>
+    );
+  },
   Callout,
   Card,
   CardGrid,
