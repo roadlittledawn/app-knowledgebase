@@ -785,7 +785,7 @@ export function CategoryManager({
             >
               <option value="__root__">— Root level (no parent) —</option>
               {moveOptions.map((opt) => (
-                <option key={opt._id} value={opt._id}>
+                <option key={opt._id} value={opt._id} aria-label={`${opt.name}, depth level ${opt.depth}`}>
                   {'│ '.repeat(opt.depth)}
                   {opt.name}
                 </option>
