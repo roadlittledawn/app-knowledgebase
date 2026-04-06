@@ -16,6 +16,7 @@ import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
+import { CategorySelector } from './CategorySelector';
 import { useTheme } from './ThemeProvider';
 import { Pencil, Eye, ClipboardList, Bot, Check, Loader2, Database } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -437,12 +438,6 @@ function MetadataPanel({
   setCategoryId,
   onCategoryCreated,
 }: MetadataPanelProps) {
-  const [showNewCategory, setShowNewCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [parentCategoryId, setParentCategoryId] = useState('');
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
-  const [categoryError, setCategoryError] = useState<string | null>(null);
-
   // Local text state for comma-separated inputs so users can type commas
   // without the trailing separator being stripped by filter(Boolean)
   const [tagsText, setTagsText] = useState(frontmatter.tags.join(', '));
@@ -467,20 +462,12 @@ function MetadataPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frontmatter.languages]);
 
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) return;
-
-    setIsCreatingCategory(true);
-    setCategoryError(null);
-
-    try {
+  const handleCreateCategory = useCallback(
+    async (name: string, parentId: string | null) => {
       const res = await fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newCategoryName.trim(),
-          parentId: parentCategoryId || null,
-        }),
+        body: JSON.stringify({ name, parentId }),
       });
 
       if (!res.ok) {
@@ -491,15 +478,9 @@ function MetadataPanel({
       const { category } = await res.json();
       onCategoryCreated(category);
       setCategoryId(category._id);
-      setNewCategoryName('');
-      setParentCategoryId('');
-      setShowNewCategory(false);
-    } catch (err) {
-      setCategoryError(err instanceof Error ? err.message : 'Failed to create category');
-    } finally {
-      setIsCreatingCategory(false);
-    }
-  };
+    },
+    [onCategoryCreated, setCategoryId]
+  );
 
   return (
     <div className="p-4 space-y-4">
@@ -559,87 +540,12 @@ function MetadataPanel({
         >
           Category *
         </label>
-        <div className="flex gap-2">
-          <select
-            id="category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-          >
-            <option value="">Select a category</option>
-            {renderCategoryOptions(categories)}
-          </select>
-          <button
-            type="button"
-            onClick={() => setShowNewCategory(!showNewCategory)}
-            className="px-3 py-2 text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
-            title="Add new category"
-          >
-            +
-          </button>
-        </div>
-
-        {/* New Category Form */}
-        {showNewCategory && (
-          <div className="mt-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md space-y-3">
-            <div>
-              <label
-                htmlFor="newCategoryName"
-                className="block text-xs font-medium text-[var(--color-foreground-muted)] mb-1"
-              >
-                Category Name
-              </label>
-              <input
-                id="newCategoryName"
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                placeholder="New category name"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="parentCategory"
-                className="block text-xs font-medium text-[var(--color-foreground-muted)] mb-1"
-              >
-                Parent Category (optional)
-              </label>
-              <select
-                id="parentCategory"
-                value={parentCategoryId}
-                onChange={(e) => setParentCategoryId(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm bg-[var(--color-background)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              >
-                <option value="">None (top-level)</option>
-                {renderCategoryOptions(categories)}
-              </select>
-            </div>
-            {categoryError && <p className="text-xs text-[var(--color-error)]">{categoryError}</p>}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleCreateCategory}
-                disabled={isCreatingCategory || !newCategoryName.trim()}
-                className="flex-1 px-3 py-1.5 text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {isCreatingCategory ? 'Creating...' : 'Create'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowNewCategory(false);
-                  setNewCategoryName('');
-                  setParentCategoryId('');
-                  setCategoryError(null);
-                }}
-                className="px-3 py-1.5 text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+        <CategorySelector
+          tree={categories}
+          selectedCategoryId={categoryId}
+          onChange={setCategoryId}
+          onCreateCategory={handleCreateCategory}
+        />
       </div>
       <div>
         <label
@@ -743,20 +649,4 @@ function MetadataPanel({
       </div>
     </div>
   );
-}
-
-function renderCategoryOptions(categories: CategoryTreeNode[], level = 0): React.ReactNode[] {
-  const options: React.ReactNode[] = [];
-  for (const cat of categories) {
-    options.push(
-      <option key={cat._id} value={cat._id}>
-        {'\u00A0'.repeat(level * 4)}
-        {cat.name}
-      </option>
-    );
-    if (cat.children.length > 0) {
-      options.push(...renderCategoryOptions(cat.children, level + 1));
-    }
-  }
-  return options;
 }
