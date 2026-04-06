@@ -451,16 +451,18 @@ function MetadataPanel({
   // Sync from external frontmatter changes (e.g. AI panel)
   useEffect(() => {
     const currentParsed = tagsText.split(',').map((s) => s.trim()).filter(Boolean);
-    if (JSON.stringify(currentParsed) !== JSON.stringify(frontmatter.tags)) {
-      setTagsText(frontmatter.tags.join(', '));
+    const tags = frontmatter.tags;
+    if (currentParsed.length !== tags.length || currentParsed.some((v, i) => v !== tags[i])) {
+      setTagsText(tags.join(', '));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frontmatter.tags]);
 
   useEffect(() => {
     const currentParsed = languagesText.split(',').map((s) => s.trim()).filter(Boolean);
-    if (JSON.stringify(currentParsed) !== JSON.stringify(frontmatter.languages)) {
-      setLanguagesText(frontmatter.languages.join(', '));
+    const langs = frontmatter.languages;
+    if (currentParsed.length !== langs.length || currentParsed.some((v, i) => v !== langs[i])) {
+      setLanguagesText(langs.join(', '));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frontmatter.languages]);
