@@ -139,5 +139,6 @@ Never commit `.env.local`. All env vars are server-side runtime only (no `NEXT_P
 - **Monaco editor** — loaded dynamically with `ssr: false`
 - **MDX rendering** — always use the DDS component map; do not use raw HTML elements for MDX content
 - **MDX numeric props** — `next-mdx-remote` v6 silently drops numeric JSX expression props (`columns={2}` arrives as `undefined`). Always use string attribute syntax for numbers: `columns="2"` not `columns={2}`. See `docs/mdx-numeric-props-bug.md`.
+- **Tailwind arbitrary values** — the `[value]` bracket syntax (e.g. `max-h-[375px]`, `pb-[40px]`) can silently fail to apply in Tailwind v4. Use inline styles for load-bearing sizing/spacing on scroll containers. See `docs/tailwind-v4-arbitrary-values.md`.
 - **Color tokens** — use CSS custom properties for all UI colors; no hardcoded values
 - **Import paths** — use `@/*` alias (maps to `src/*`)
