@@ -54,33 +54,41 @@ export function OnThisPage() {
     const target = document.getElementById(id);
     if (!target) return;
 
-    const offset = 80;
-    const top = target.getBoundingClientRect().top + window.scrollY - offset;
-
-    // Find the scrollable main content area
-    const main = document.querySelector('main');
-    if (main) {
-      const mainTop = target.offsetTop - offset;
-      main.scrollTo({ top: mainTop, behavior: 'smooth' });
+    const offset = 24;
+    // The root layout also renders a <main>, so querySelector('main') would
+    // return the wrong element. Target the specific scrollable article area by ID.
+    const scrollArea = document.getElementById('entry-scroll-area');
+    if (scrollArea) {
+      // getBoundingClientRect() gives viewport-relative positions.
+      // Subtract scrollArea's top to get position relative to the visible portion,
+      // then add scrollArea's current scrollTop to get the absolute scroll target.
+      const targetTop = target.getBoundingClientRect().top;
+      const areaTop = scrollArea.getBoundingClientRect().top;
+      const scrollTo = scrollArea.scrollTop + (targetTop - areaTop) - offset;
+      scrollArea.scrollTo({ top: scrollTo, behavior: 'smooth' });
     } else {
+      const top = target.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: 'smooth' });
     }
   };
 
   return (
     <nav aria-label="On this page">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
+      <h3 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-foreground-muted)] mb-3">
         On this Page
       </h3>
       <div className="on-this-page-container relative">
-        <ul className="on-this-page-list space-y-1 max-h-[400px] overflow-y-auto pr-2">
+        <ul
+          className="on-this-page-list space-y-0.5 max-h-[375px] overflow-y-auto"
+          style={{ paddingBottom: '2.5rem' }}
+        >
           {headings.map((heading) => (
             <li key={heading.id}>
               <a
                 href={`#${heading.id}`}
                 onClick={(e) => handleClick(e, heading.id)}
-                className={`block text-xs leading-snug transition-colors hover:text-[var(--color-primary)] text-[var(--color-foreground-secondary)] ${
-                  heading.level === 3 ? 'pl-3' : ''
+                className={`cursor-pointer block text-[13px] leading-snug py-1.5 transition-colors hover:text-[var(--color-primary)] text-[var(--color-foreground-secondary)] ${
+                  heading.level === 3 ? 'pl-4 text-[12px]' : 'font-medium'
                 }`}
               >
                 {heading.text}
@@ -88,7 +96,7 @@ export function OnThisPage() {
             </li>
           ))}
         </ul>
-        <div className="on-this-page-fade pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--color-background)] to-transparent" />
+        <div className="on-this-page-fade pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[var(--color-background)] to-transparent" />
       </div>
     </nav>
   );

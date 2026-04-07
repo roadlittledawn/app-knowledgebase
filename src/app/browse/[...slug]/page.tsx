@@ -182,7 +182,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
       </aside>
 
       {/* Center — article content */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      <main id="entry-scroll-area" className="flex-1 min-w-0 overflow-y-auto">
         {/* Entry details collapsible — hidden on xl when right sidebar is visible */}
         <CollapsibleSection
           title="Entry Details"
@@ -195,7 +195,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
           />
         </CollapsibleSection>
 
-        <article className="mx-auto px-6 py-8" style={{ maxWidth: '1000px' }}>
+        <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
           {/* Breadcrumbs */}
           <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
 
@@ -231,7 +231,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
 
       {/* Right sidebar — on this page + entry metadata */}
       <aside className="hidden xl:flex xl:flex-col w-72 flex-shrink-0 border-l border-[var(--color-border)] overflow-y-auto">
-        <div className="p-5 pb-0">
+        <div className="p-5 pb-4 border-b border-[var(--color-border)]">
           <OnThisPage />
         </div>
         <EntrySidebar
