@@ -64,6 +64,27 @@ function slugify(text: string): string {
 
 interface HeadingElementProps {
   children?: ReactNode;
+  id?: string;
+  className?: string;
+  [key: string]: unknown;
+}
+
+// Track seen slugs within a render to deduplicate
+const seenSlugs = new Map<string, number>();
+
+/**
+ * Get a unique ID for a heading, deduplicating if needed
+ */
+function getUniqueId(baseSlug: string, explicitId?: string): string | undefined {
+  // Use explicit ID if provided by author
+  if (explicitId) return explicitId;
+
+  if (!baseSlug) return undefined;
+
+  const count = seenSlugs.get(baseSlug) || 0;
+  seenSlugs.set(baseSlug, count + 1);
+
+  return count === 0 ? baseSlug : `${baseSlug}-${count + 1}`;
 }
 
 interface CodeElementProps {
@@ -77,20 +98,20 @@ interface PreProps {
 }
 
 const components = {
-  h2: ({ children }: HeadingElementProps) => {
+  h2: ({ children, id: explicitId, ...props }: HeadingElementProps) => {
     const text = extractTextContent(children);
-    const id = slugify(text) || undefined;
+    const id = getUniqueId(slugify(text), explicitId);
     return (
-      <Heading level={2} id={id}>
+      <Heading level={2} id={id} {...props}>
         {children}
       </Heading>
     );
   },
-  h3: ({ children }: HeadingElementProps) => {
+  h3: ({ children, id: explicitId, ...props }: HeadingElementProps) => {
     const text = extractTextContent(children);
-    const id = slugify(text) || undefined;
+    const id = getUniqueId(slugify(text), explicitId);
     return (
-      <Heading level={3} id={id}>
+      <Heading level={3} id={id} {...props}>
         {children}
       </Heading>
     );
@@ -143,6 +164,9 @@ interface MDXContentProps {
 }
 
 export function MDXContent({ source }: MDXContentProps) {
+  // Reset slug deduplication map on each render
+  seenSlugs.clear();
+
   return (
     <MDXErrorBoundary resetKeys={[source]}>
       <MDXRemote {...source} components={components} />
