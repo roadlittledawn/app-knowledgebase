@@ -24,6 +24,7 @@ import { CategoryNavSidebar } from '@/components/CategoryNavSidebar';
 import { MDXContent } from '@/components/mdx/MDXContent';
 import { MobileDrawer } from '@/components/MobileDrawer';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
+import { OnThisPage } from '@/components/OnThisPage';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
 
@@ -181,12 +182,14 @@ export default async function EntryDetailPage({ params }: PageProps) {
       </aside>
 
       {/* Center — article content */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      <main id="entry-scroll-area" className="flex-1 min-w-0 overflow-y-auto">
         {/* Entry details collapsible — hidden on xl when right sidebar is visible */}
         <CollapsibleSection
           title="Entry Details"
           className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
         >
+          <OnThisPage />
+          <div className="my-4 border-t border-[var(--color-border)]" />
           <EntrySidebar
             entry={sidebarEntry}
             relatedEntries={relatedEntries}
@@ -194,7 +197,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
           />
         </CollapsibleSection>
 
-        <article className="mx-auto px-6 py-8" style={{maxWidth: '1000px'}}>
+        <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
           {/* Breadcrumbs */}
           <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
 
@@ -228,8 +231,11 @@ export default async function EntryDetailPage({ params }: PageProps) {
         </article>
       </main>
 
-      {/* Right sidebar — entry metadata */}
+      {/* Right sidebar — on this page + entry metadata */}
       <aside className="hidden xl:flex xl:flex-col w-72 flex-shrink-0 border-l border-[var(--color-border)] overflow-y-auto">
+        <div className="p-5 pb-4 border-b border-[var(--color-border)]">
+          <OnThisPage />
+        </div>
         <EntrySidebar
           entry={sidebarEntry}
           relatedEntries={relatedEntries}
