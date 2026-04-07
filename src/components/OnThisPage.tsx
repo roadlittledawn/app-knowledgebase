@@ -79,8 +79,8 @@ export function OnThisPage() {
       </h3>
       <div className="on-this-page-container relative">
         <ul
-          className="on-this-page-list space-y-0.5 max-h-[375px] overflow-y-auto"
-          style={{ paddingBottom: '2.5rem' }}
+          className="on-this-page-list space-y-0.5 overflow-y-auto"
+          style={{ maxHeight: '375px', paddingBottom: '2.5rem' }}
         >
           {headings.map((heading) => (
             <li key={heading.id}>
