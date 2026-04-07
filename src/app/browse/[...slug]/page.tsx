@@ -188,6 +188,8 @@ export default async function EntryDetailPage({ params }: PageProps) {
           title="Entry Details"
           className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
         >
+          <OnThisPage />
+          <div className="my-4 border-t border-[var(--color-border)]" />
           <EntrySidebar
             entry={sidebarEntry}
             relatedEntries={relatedEntries}
