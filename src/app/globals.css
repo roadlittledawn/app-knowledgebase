@@ -229,6 +229,14 @@ body {
   background: var(--color-scrollbar-thumb-hover);
 }
 
+/* On this Page menu — hidden scrollbar */
+.on-this-page-list {
+  scrollbar-width: none; /* Firefox */
+}
+.on-this-page-list::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+}
+
 /* Focus visible styles */
 :focus-visible {
   outline: 2px solid var(--color-ring);
@@ -254,7 +262,6 @@ a:not([class*='text-']):hover {
 a:not(.prose *) {
   cursor: pointer;
 }
-
 
 /* Code block styles using tokens */
 code {
