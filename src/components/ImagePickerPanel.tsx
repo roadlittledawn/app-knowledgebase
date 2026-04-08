@@ -4,13 +4,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Upload, Search, Copy, FileImage, Check } from 'lucide-react';
 import type { IImage } from '@/types/image';
 
-interface ImagePickerPanelProps {
-  // No additional props needed for now
-}
-
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
-export function ImagePickerPanel({}: ImagePickerPanelProps) {
+export function ImagePickerPanel() {
   // Upload state
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
