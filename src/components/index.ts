@@ -43,6 +43,12 @@ export { SourceCitations, type SourceCitation } from './SourceCitations';
 // AI Writing components
 export { AIWritingPanel } from './AIWritingPanel';
 
+// Image management components
+export { ImageCard } from './ImageCard';
+export { ImageUploader } from './ImageUploader';
+export { ImageGallery } from './ImageGallery';
+export { ImageDetailPanel } from './ImageDetailPanel';
+
 // Admin components
 export { StatsPanel } from './StatsPanel';
 export { RecentEntries } from './RecentEntries';

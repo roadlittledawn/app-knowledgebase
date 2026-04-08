@@ -16,3 +16,6 @@ export type {
   WritingTemplateDocument,
   AgentPersonaDocument,
 } from './WritingConfig';
+
+export { Image } from './Image';
+export type { ImageDocument } from './Image';
