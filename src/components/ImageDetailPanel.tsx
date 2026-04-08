@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import type { IImage } from '@/types/image';
+import { formatBytes } from '@/lib/utils';
 
 interface ReferencingEntry {
   _id: string;
@@ -16,11 +17,6 @@ interface ImageDetailPanelProps {
   onClose: () => void;
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export function ImageDetailPanel({ image, onClose }: ImageDetailPanelProps) {
   const [entries, setEntries] = useState<ReferencingEntry[]>([]);

@@ -16,9 +16,10 @@ import type { CategoryTreeNode } from '@/types/category';
 import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
+import { ImagePickerPanel } from './ImagePickerPanel';
 import { CategorySelector } from './CategorySelector';
 import { useTheme } from './ThemeProvider';
-import { Pencil, Eye, ClipboardList, Bot, Check, Loader2, Database } from 'lucide-react';
+import { Pencil, Eye, ClipboardList, Images, Bot, Check, Loader2, Database } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
@@ -71,7 +72,7 @@ export function EntryEditor(props: EntryEditorProps) {
 }
 
 type LeftPanelView = 'editor' | 'preview';
-type RightPanelView = 'metadata' | 'ai';
+type RightPanelView = 'metadata' | 'images' | 'ai';
 
 function EntryEditorInner({
   entry,
@@ -334,12 +335,14 @@ function EntryEditorInner({
           {/* Left Column Content */}
           <div className="flex-1 min-h-0">
             {leftView === 'editor' ? (
-              <MonacoPane
-                value={body}
-                onChange={setBody}
-                theme={theme}
-                onSelectionChange={handleSelectionChange}
-              />
+              <div className="h-full">
+                <MonacoPane
+                  value={body}
+                  onChange={setBody}
+                  theme={theme}
+                  onSelectionChange={handleSelectionChange}
+                />
+              </div>
             ) : (
               <div className="h-full overflow-y-auto">
                 <PreviewPane mdx={body} />
@@ -362,6 +365,16 @@ function EntryEditorInner({
                 }`}
               >
                 <ClipboardList className="w-4 h-4" /> Metadata
+              </button>
+              <button
+                onClick={() => setRightView('images')}
+                className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
+                  rightView === 'images'
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+              >
+                <Images className="w-4 h-4" /> Images
               </button>
               <button
                 onClick={() => setRightView('ai')}
@@ -392,6 +405,8 @@ function EntryEditorInner({
                 setCategoryId={setCategoryId}
                 onCategoryCreated={handleCategoryCreated}
               />
+            ) : rightView === 'images' ? (
+              <ImagePickerPanel />
             ) : (
               <AIWritingPanel
                 body={body}
