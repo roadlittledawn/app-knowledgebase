@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Upload, Search, Copy, FileImage, Check } from 'lucide-react';
 import type { IImage } from '@/types/image';
+import { formatBytes } from '@/lib/utils';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -112,11 +113,6 @@ export function ImagePickerPanel() {
     setTimeout(() => setCopiedMarkdown(null), 2000);
   }
 
-  function formatBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
 
   return (
     <div className="p-4 space-y-4 h-full flex flex-col">

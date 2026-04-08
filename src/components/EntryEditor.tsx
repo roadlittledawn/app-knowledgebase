@@ -335,7 +335,7 @@ function EntryEditorInner({
           {/* Left Column Content */}
           <div className="flex-1 min-h-0">
             {leftView === 'editor' ? (
-              <div className="h-full max-md:max-h-[500px] max-md:overflow-hidden">
+              <div className="h-full">
                 <MonacoPane
                   value={body}
                   onChange={setBody}
@@ -344,7 +344,7 @@ function EntryEditorInner({
                 />
               </div>
             ) : (
-              <div className="h-full max-md:max-h-[500px] max-md:overflow-auto">
+              <div className="h-full overflow-y-auto">
                 <PreviewPane mdx={body} />
               </div>
             )}
@@ -390,7 +390,7 @@ function EntryEditorInner({
           </div>
 
           {/* Right Column Content */}
-          <div className="flex-1 min-h-0 max-md:max-h-[800px] overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             {rightView === 'metadata' ? (
               <MetadataPanel
                 frontmatter={frontmatter}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Copy, Pencil, ExternalLink, Trash2, Check } from 'lucide-react';
 import type { IImage } from '@/types/image';
+import { formatBytes } from '@/lib/utils';
 
 interface ImageCardProps {
   image: IImage;
@@ -12,11 +13,6 @@ interface ImageCardProps {
   onSelect?: () => void;
 }
 
-export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export function ImageCard({ image, variant = 'card', onAltTextSaved, onDeleted, onSelect }: ImageCardProps) {
   const [editingAlt, setEditingAlt] = useState(false);
