@@ -105,6 +105,9 @@ export function TopNav({ className = '' }: TopNavProps) {
                 <Link href="/chat" className={linkClasses('/chat')}>
                   Chat
                 </Link>
+                <Link href="/admin/images" className={linkClasses('/admin/images')}>
+                  Images
+                </Link>
                 <Link href="/admin" className={linkClasses('/admin')}>
                   Admin
                 </Link>
@@ -153,6 +156,13 @@ export function TopNav({ className = '' }: TopNavProps) {
                       onClick={() => setDropdownOpen(false)}
                     >
                       Chat
+                    </Link>
+                    <Link
+                      href="/admin/images"
+                      className={`block px-4 py-2 text-sm ${linkClasses('/admin/images')}`}
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Images
                     </Link>
                     <Link
                       href="/admin"

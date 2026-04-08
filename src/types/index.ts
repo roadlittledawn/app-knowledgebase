@@ -29,3 +29,6 @@ export type {
   UpdateWritingConfigRequest,
   UpdateWritingConfigResponse,
 } from './writing-config';
+
+// Image types
+export type { IImage, CreateImageInput, UpdateImageInput } from './image';
