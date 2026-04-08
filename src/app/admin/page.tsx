@@ -15,7 +15,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ListFilter, FolderTree } from 'lucide-react';
+import { ListFilter, FolderTree, Image as ImageIcon } from 'lucide-react';
 import { StatsPanel } from '@/components/StatsPanel';
 import { RecentEntries } from '@/components/RecentEntries';
 import { TopTagsChart } from '@/components/TopTagsChart';
@@ -138,6 +138,15 @@ export default function AdminDashboard() {
             >
               <FolderTree size={18} />
               Manage Categories
+            </Link>
+            <Link
+              href="/admin/images"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
+                border border-[var(--color-border)] text-[var(--color-foreground)]
+                hover:bg-[var(--color-surface-hover)] transition-colors"
+            >
+              <ImageIcon size={18} />
+              Manage Images
             </Link>
             <Link
               href="/admin/entries"
