@@ -9,6 +9,7 @@
 
 import { useRef, useEffect } from 'react';
 import { MessageBubble } from './MessageBubble';
+import { SourceCitations, type SourceCitation } from './SourceCitations';
 
 export interface ChatMessage {
   id: string;
@@ -19,9 +20,10 @@ export interface ChatMessage {
 interface MessageListProps {
   messages: ChatMessage[];
   streamingContent?: string;
+  sources?: SourceCitation[];
 }
 
-export function MessageList({ messages, streamingContent }: MessageListProps) {
+export function MessageList({ messages, streamingContent, sources }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -61,6 +63,11 @@ export function MessageList({ messages, streamingContent }: MessageListProps) {
       ))}
       {streamingContent && (
         <MessageBubble role="assistant" content={streamingContent} isStreaming />
+      )}
+      {sources && sources.length > 0 && !streamingContent && (
+        <div className="px-0 pb-2">
+          <SourceCitations sources={sources} />
+        </div>
       )}
       <div ref={bottomRef} />
     </div>
