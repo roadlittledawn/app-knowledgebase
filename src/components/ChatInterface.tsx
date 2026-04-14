@@ -12,7 +12,7 @@
 import { useState, useCallback } from 'react';
 import { MessageList, type ChatMessage } from './MessageList';
 import { ChatInput } from './ChatInput';
-import { SourceCitations, type SourceCitation } from './SourceCitations';
+import { type SourceCitation } from './SourceCitations';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface ChatInterfaceProps {
@@ -151,14 +151,7 @@ function ChatInterfaceInner({ initialMessages = [] }: ChatInterfaceProps) {
       </div>
 
       {/* Messages */}
-      <MessageList messages={messages} streamingContent={streamingContent} />
-
-      {/* Sources */}
-      {sources.length > 0 && (
-        <div className="px-4 pb-2">
-          <SourceCitations sources={sources} />
-        </div>
-      )}
+      <MessageList messages={messages} streamingContent={streamingContent} sources={sources} />
 
       {/* Error display */}
       {error && (
