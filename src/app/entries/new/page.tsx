@@ -93,9 +93,9 @@ export default function NewEntryPage() {
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-4 h-12 flex items-center gap-4">
           <Link
-            href="/browse"
+            href="/admin"
             className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
-            aria-label="Back to browse"
+            aria-label="Back to admin dashboard"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
