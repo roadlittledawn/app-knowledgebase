@@ -135,9 +135,9 @@ export default function EditEntryPage() {
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-4 h-12 flex items-center gap-4">
           <Link
-            href="/browse"
+            href="/admin"
             className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
-            aria-label="Back to browse"
+            aria-label="Back to admin dashboard"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -149,9 +149,16 @@ export default function EditEntryPage() {
             </svg>
           </Link>
           <h1 className="text-base font-medium text-[var(--color-foreground)]">Edit Entry</h1>
-          <span className="text-sm text-[var(--color-foreground-muted)] truncate">
-            {entry.frontmatter.title}
-          </span>
+          {entry.status === 'published' && entry.slug ? (
+            <Link
+              href={`/browse/${entry.slug}`}
+              target="_blank"
+              className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline whitespace-nowrap"
+              title="Open in new tab"
+            >
+              View Published Entry
+            </Link>
+          ) : null}
         </div>
       </div>
 
