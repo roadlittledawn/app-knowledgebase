@@ -149,14 +149,12 @@ export default function EditEntryPage() {
             </svg>
           </Link>
           <h1 className="text-base font-medium text-[var(--color-foreground)]">Edit Entry</h1>
-          <span className="text-sm text-[var(--color-foreground-muted)] truncate">
-            {entry.frontmatter.title}
-          </span>
           {entry.status === 'published' && entry.slug ? (
             <Link
               href={`/browse/${entry.slug}`}
+              target="_blank"
               className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline whitespace-nowrap"
-              title="View Published Entry"
+              title="Open in new tab"
             >
               View Published Entry
             </Link>
