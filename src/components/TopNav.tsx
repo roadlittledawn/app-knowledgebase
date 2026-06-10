@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, MoreVertical } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { GlobalSearch } from './GlobalSearch';
 import { useMobileNav } from './MobileNavContext';
 
 interface TopNavProps {
@@ -92,41 +93,53 @@ export function TopNav({ className = '' }: TopNavProps) {
             Knowledgebase
           </Link>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+          {/* Global search — desktop, centered */}
+          <div className="hidden lg:flex flex-1 justify-center mx-4">
+            <div className="w-full max-w-md">
+              <GlobalSearch />
+            </div>
+          </div>
 
-          {/* Desktop nav links */}
-          <nav className="hidden lg:flex items-center gap-4">
-            <Link href="/browse" className={linkClasses('/browse')}>
-              Browse
-            </Link>
+          {/* Spacer (mobile only) */}
+          <div className="flex-1 lg:hidden" />
+
+          {/* Desktop right group: nav + new entry + theme */}
+          <div className="hidden lg:flex items-center gap-4">
+            <nav className="flex items-center gap-4">
+              <Link href="/browse" className={linkClasses('/browse')}>
+                Browse
+              </Link>
+              {!isLoading && isAuthenticated && (
+                <>
+                  <Link href="/chat" className={linkClasses('/chat')}>
+                    Chat
+                  </Link>
+                  <Link href="/admin/images" className={linkClasses('/admin/images')}>
+                    Images
+                  </Link>
+                  <Link href="/admin" className={linkClasses('/admin')}>
+                    Admin
+                  </Link>
+                </>
+              )}
+            </nav>
+
             {!isLoading && isAuthenticated && (
-              <>
-                <Link href="/chat" className={linkClasses('/chat')}>
-                  Chat
-                </Link>
-                <Link href="/admin/images" className={linkClasses('/admin/images')}>
-                  Images
-                </Link>
-                <Link href="/admin" className={linkClasses('/admin')}>
-                  Admin
-                </Link>
-              </>
+              <Link
+                href="/entries/new"
+                className="px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] transition-colors"
+              >
+                New Entry
+              </Link>
             )}
-          </nav>
 
-          {/* Desktop New Entry button */}
-          {!isLoading && isAuthenticated && (
-            <Link
-              href="/entries/new"
-              className="hidden lg:flex px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] transition-colors"
-            >
-              New Entry
-            </Link>
-          )}
+            <ThemeToggle />
+          </div>
 
-          {/* Theme toggle */}
-          <ThemeToggle />
+          {/* Theme toggle — mobile */}
+          <div className="lg:hidden">
+            <ThemeToggle />
+          </div>
 
           {/* Mobile actions dropdown */}
           <div className="lg:hidden relative" ref={dropdownRef}>
