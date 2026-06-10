@@ -130,11 +130,11 @@ export default function AdminCategoriesPage() {
   }, []);
 
   const handleReorderCategories = useCallback(
-    async (categoryId: string, newOrder: number): Promise<void> => {
-      const res = await fetch(`/api/categories/${categoryId}`, {
+    async (parentId: string | null, orderedIds: string[]): Promise<void> => {
+      const res = await fetch('/api/categories/reorder', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order: newOrder }),
+        body: JSON.stringify({ parentId, orderedIds }),
       });
       if (!res.ok) {
         const err = await res.json();

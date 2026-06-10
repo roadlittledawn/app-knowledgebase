@@ -69,7 +69,7 @@ export async function GET(): Promise<NextResponse<CategoriesListResponse | Error
   try {
     await connectToDatabase();
 
-    const categories = await Category.find().sort({ order: 1 }).lean();
+    const categories = await Category.find().sort({ order: 1, name: 1 }).lean();
 
     return NextResponse.json({
       categories: categories.map(transformCategory),
@@ -158,13 +158,17 @@ export async function POST(
       );
     }
 
-    // Determine order if not provided
+    // Determine order if not provided.
+    // If the sibling group has been manually ordered (any sibling has order >= 1),
+    // append to the end. Otherwise leave order at 0 so the group stays sorted
+    // alphabetically (A–Z) by default.
     let categoryOrder = order;
     if (categoryOrder === undefined) {
       const maxOrderCategory = await Category.findOne({ parentId: normalizedParentId })
         .sort({ order: -1 })
         .lean();
-      categoryOrder = maxOrderCategory ? maxOrderCategory.order + 1 : 0;
+      categoryOrder =
+        maxOrderCategory && maxOrderCategory.order >= 1 ? maxOrderCategory.order + 1 : 0;
     }
 
     // Create the category

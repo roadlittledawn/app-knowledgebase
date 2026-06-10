@@ -45,6 +45,7 @@ export function buildTree(
       slug: cat.slug,
       order: cat.order,
       entryCount: entryCounts.get(id) || 0,
+      totalEntryCount: 0,
       children: [],
     });
   }
@@ -69,12 +70,23 @@ export function buildTree(
     }
   }
 
-  // Sort children by order recursively
+  // Sort children by explicit order, falling back to alphabetical (A–Z) by name.
+  // Categories with order 0 are "unordered" and sort alphabetically; once a sibling
+  // group is manually reordered, each member gets an explicit order >= 1.
   const sortChildren = (nodes: CategoryTreeNode[]) => {
-    nodes.sort((a, b) => a.order - b.order);
+    nodes.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
     nodes.forEach((n) => sortChildren(n.children));
   };
   sortChildren(roots);
+
+  // Compute rollup counts: each node's totalEntryCount is its own entries plus
+  // the totals of all descendants (post-order traversal).
+  const computeTotals = (node: CategoryTreeNode): number => {
+    const childrenTotal = node.children.reduce((sum, child) => sum + computeTotals(child), 0);
+    node.totalEntryCount = node.entryCount + childrenTotal;
+    return node.totalEntryCount;
+  };
+  roots.forEach(computeTotals);
 
   return roots;
 }
@@ -161,8 +173,8 @@ export async function getEntryCountForCategory(categoryId: string): Promise<numb
 export async function getCategoryTreeWithCounts(): Promise<CategoryTreeNode[]> {
   await connectToDatabase();
 
-  // Fetch all categories sorted by order
-  const categories = await Category.find().sort({ order: 1 }).lean();
+  // Fetch all categories sorted by order, then name (A–Z) as tiebreaker
+  const categories = await Category.find().sort({ order: 1, name: 1 }).lean();
 
   // Get entry counts
   const entryCounts = await getEntryCounts();
