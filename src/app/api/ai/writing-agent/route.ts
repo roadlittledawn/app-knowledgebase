@@ -26,6 +26,8 @@ type WritingAction =
   | 'review'
   | 'improve'
   | 'expand'
+  | 'reformat'
+  | 'custom'
   | 'suggest-title'
   | 'suggest-tags'
   | 'research'
@@ -48,6 +50,8 @@ interface WritingAgentRequest {
   frontmatter: EntryFrontmatter;
   selection?: string;
   context?: string;
+  /** Free-form user instruction for the 'custom' action and an optional add-on for 'reformat' */
+  customPrompt?: string;
 }
 
 /**
@@ -72,6 +76,8 @@ function getActionConfig(action: WritingAction): {
     case 'review':
     case 'improve':
     case 'expand':
+    case 'reformat':
+    case 'custom':
       return { defaultPersona: 'writer' };
     case 'suggest-title':
     case 'suggest-tags':
@@ -84,10 +90,24 @@ function getActionConfig(action: WritingAction): {
 /**
  * Build action-specific instructions for the prompt
  */
-function getActionInstructions(action: WritingAction, selection?: string): string {
+function getActionInstructions(
+  action: WritingAction,
+  selection?: string,
+  customPrompt?: string
+): string {
   const selectionContext = selection
     ? `\n\nThe user has selected the following text for you to focus on:\n<selection>\n${selection}\n</selection>`
     : '';
+
+  const customInstruction = customPrompt?.trim()
+    ? `\n\nAdditional instructions from the user:\n<instructions>\n${customPrompt.trim()}\n</instructions>`
+    : '';
+
+  // For actions whose output replaces the editor body, the model must emit only the
+  // raw MDX body — no commentary, no surrounding code fences.
+  const rawMdxOnly =
+    `\n\nOutput ONLY the resulting MDX body, ready to be saved directly as the entry content. ` +
+    `Do not include any explanation, preamble, or wrapping code fences.`;
 
   switch (action) {
     case 'review':
@@ -96,6 +116,22 @@ function getActionInstructions(action: WritingAction, selection?: string): strin
       return `Improve the content by enhancing clarity, fixing issues, and making it more engaging while preserving the original meaning.${selectionContext}`;
     case 'expand':
       return `Expand the content with additional details, examples, and explanations while maintaining consistency with the existing style.${selectionContext}`;
+    case 'reformat':
+      return (
+        `Reformat the entry content to make better use of the docs-design-system-react (DDS) ` +
+        `component library for improved structure, layout, and readability. Preserve all of the ` +
+        `original information and meaning — do not add new facts or remove substance. Convert ` +
+        `appropriate plain-markdown sections into suitable DDS components (callouts, tabs, ` +
+        `collapsers, tables, etc.) where they genuinely improve clarity, and leave simple content ` +
+        `as-is. ${selection ? 'Reformat only the selected text.' : 'Reformat the entire body.'}` +
+        `${selectionContext}${customInstruction}${rawMdxOnly}`
+      );
+    case 'custom':
+      return (
+        `Follow the user's instructions below to transform the entry content. ` +
+        `${selection ? 'Apply them to the selected text.' : 'Apply them to the entire body.'}` +
+        `${selectionContext}${customInstruction}${rawMdxOnly}`
+      );
     case 'suggest-title':
       return `Suggest 3-5 compelling titles for this content. Each title should be concise, descriptive, and engaging.${selectionContext}`;
     case 'suggest-tags':
@@ -122,7 +158,8 @@ function buildSystemPrompt(
   skillPrompt: string | null,
   componentDocs: string | null,
   action: WritingAction,
-  selection?: string
+  selection?: string,
+  customPrompt?: string
 ): string {
   const parts: string[] = [];
 
@@ -159,7 +196,7 @@ function buildSystemPrompt(
   }
 
   // Add action-specific instructions (Requirement 8.12 for selection context)
-  parts.push(`\n## Task\n\n${getActionInstructions(action, selection)}`);
+  parts.push(`\n## Task\n\n${getActionInstructions(action, selection, customPrompt)}`);
 
   return parts.join('\n\n');
 }
@@ -266,11 +303,20 @@ export async function POST(request: NextRequest) {
       frontmatter,
       selection,
       context: additionalContext,
+      customPrompt,
     } = body as WritingAgentRequest;
 
     // Validate required fields
     if (!action) {
       return new Response(JSON.stringify({ error: 'Action is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // The custom action is driven entirely by the user's prompt
+    if (action === 'custom' && !customPrompt?.trim()) {
+      return new Response(JSON.stringify({ error: 'A custom prompt is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -334,7 +380,8 @@ export async function POST(request: NextRequest) {
       null, // Skill prompt would be passed from request if specified
       componentDocs,
       action,
-      selection
+      selection,
+      customPrompt
     );
 
     // Build user message

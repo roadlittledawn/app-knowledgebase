@@ -223,10 +223,15 @@ function EntryEditorInner({
   }, []);
 
   const handleApplyAIContent = useCallback(
-    (content: string) => {
+    (content: string, replace = false) => {
       if (selection) {
+        // Replace the selected text with the AI output (both append-style and
+        // replace-style actions operate on the selection when one is active).
         setBody((prev) => prev.replace(selection, content));
         setSelection(undefined);
+      } else if (replace) {
+        // Whole-body replacement (e.g. Reformat / Custom rewrite)
+        setBody(content);
       } else {
         setBody((prev) => prev + '\n\n' + content);
       }

@@ -15,13 +15,25 @@
 
 import { useState, useCallback } from 'react';
 import type { EntryFrontmatter } from '@/types/entry';
-import { Search, Sparkles, PenLine, Tags, Pin } from 'lucide-react';
+import { Search, Sparkles, PenLine, Tags, Pin, LayoutTemplate, Send } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
  * Writing action types supported by the panel
  */
-type WritingAction = 'review' | 'improve' | 'expand' | 'suggest-tags' | 'suggest-title';
+type WritingAction =
+  | 'review'
+  | 'improve'
+  | 'expand'
+  | 'reformat'
+  | 'custom'
+  | 'suggest-tags'
+  | 'suggest-title';
+
+/** Actions whose output replaces the editor body (or selection) rather than being appended */
+function isReplaceAction(action: WritingAction): boolean {
+  return action === 'reformat' || action === 'custom';
+}
 
 /**
  * Artifact representing a single AI output
@@ -32,6 +44,8 @@ interface Artifact {
   content: string;
   timestamp: Date;
   isStreaming: boolean;
+  /** Whether applying this artifact replaces the body/selection (vs appends) */
+  replace: boolean;
 }
 
 /**
@@ -64,6 +78,12 @@ const ACTION_BUTTONS: ActionButton[] = [
     icon: PenLine,
   },
   {
+    action: 'reformat',
+    label: 'Reformat (DDS)',
+    description: 'Reformat the content using the docs-design-system component library',
+    icon: LayoutTemplate,
+  },
+  {
     action: 'suggest-tags',
     label: 'Suggest Tags',
     description: 'Suggest relevant tags for this content',
@@ -81,7 +101,7 @@ interface AIWritingPanelProps {
   body: string;
   frontmatter: EntryFrontmatter;
   selection?: string;
-  onApply: (content: string) => void;
+  onApply: (content: string, replace: boolean) => void;
 }
 
 export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWritingPanelProps) {
@@ -89,12 +109,13 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
   const [activeArtifactId, setActiveArtifactId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState('');
 
   /**
    * Execute a writing action and stream the response
    */
   const executeAction = useCallback(
-    async (action: WritingAction) => {
+    async (action: WritingAction, customPromptArg?: string) => {
       setError(null);
       setIsLoading(true);
 
@@ -106,6 +127,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
         content: '',
         timestamp: new Date(),
         isStreaming: true,
+        replace: isReplaceAction(action),
       };
 
       setArtifacts((prev) => [...prev, newArtifact]);
@@ -122,6 +144,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
             body,
             frontmatter,
             selection,
+            customPrompt: customPromptArg,
           }),
         });
 
@@ -206,9 +229,15 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
   const handleApply = useCallback(() => {
     const activeArtifact = artifacts.find((a) => a.id === activeArtifactId);
     if (activeArtifact && activeArtifact.content) {
-      onApply(activeArtifact.content);
+      onApply(activeArtifact.content, activeArtifact.replace);
     }
   }, [artifacts, activeArtifactId, onApply]);
+
+  const handleRunCustom = useCallback(() => {
+    const trimmed = customPrompt.trim();
+    if (!trimmed || isLoading) return;
+    executeAction('custom', trimmed);
+  }, [customPrompt, isLoading, executeAction]);
 
   /**
    * Close an artifact tab
@@ -229,6 +258,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
    * Get display label for an action
    */
   const getActionLabel = (action: WritingAction): string => {
+    if (action === 'custom') return 'Custom';
     return ACTION_BUTTONS.find((b) => b.action === action)?.label || action;
   };
 
@@ -271,6 +301,46 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
               <span>{button.label}</span>
             </button>
           ))}
+        </div>
+
+        {/* Custom prompt */}
+        <div className="mt-3">
+          <label
+            htmlFor="ai-custom-prompt"
+            className="block text-xs font-medium text-[var(--color-foreground-muted)] mb-1"
+          >
+            Custom instruction
+          </label>
+          <div className="flex items-end gap-2">
+            <textarea
+              id="ai-custom-prompt"
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                  e.preventDefault();
+                  handleRunCustom();
+                }
+              }}
+              rows={2}
+              placeholder={
+                selection
+                  ? 'Tell the AI how to rewrite the selected text…'
+                  : 'Tell the AI how to rewrite the entry (e.g. “turn the steps into a Steps component”)…'
+              }
+              disabled={isLoading}
+              className="flex-1 resize-y px-3 py-2 text-xs rounded-md bg-[var(--color-surface)] text-[var(--color-foreground)] border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
+            />
+            <button
+              onClick={handleRunCustom}
+              disabled={isLoading || !customPrompt.trim()}
+              title="Run custom instruction (⌘/Ctrl+Enter)"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Run</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -340,7 +410,11 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
             onClick={handleApply}
             className="w-full px-4 py-2 text-sm font-medium cursor-pointer bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-md hover:opacity-90 transition-opacity"
           >
-            Apply to Editor
+            {activeArtifact.replace
+              ? selection
+                ? 'Replace selection'
+                : 'Replace entry content'
+              : 'Apply to Editor'}
           </button>
         </div>
       )}
