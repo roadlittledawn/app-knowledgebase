@@ -26,7 +26,10 @@ export interface CategoryTreeNode {
   name: string;
   slug: string;
   order: number;
+  /** Number of entries directly in this category */
   entryCount: number;
+  /** Number of entries in this category plus all descendants (rollup) */
+  totalEntryCount: number;
   children: CategoryTreeNode[];
 }
 

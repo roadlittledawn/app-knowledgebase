@@ -14,6 +14,8 @@ import type { IEntry } from '@/types/entry';
 
 interface EntryCardProps {
   entry: Omit<IEntry, 'body'>;
+  /** Render a dense single-row variant (used in grouped category listings) */
+  compact?: boolean;
 }
 
 const skillLevelLabels: Record<number, string> = {
@@ -32,8 +34,45 @@ const skillLevelColors: Record<number, string> = {
   5: 'bg-red-500/10 text-red-500',
 };
 
-export function EntryCard({ entry }: EntryCardProps) {
+const skillLevelDotColors: Record<number, string> = {
+  1: 'bg-green-500',
+  2: 'bg-blue-500',
+  3: 'bg-yellow-500',
+  4: 'bg-orange-500',
+  5: 'bg-red-500',
+};
+
+export function EntryCard({ entry, compact = false }: EntryCardProps) {
   const { frontmatter, slug, status } = entry;
+
+  if (compact) {
+    return (
+      <Link
+        href={`/browse/${slug}`}
+        className="flex items-center justify-between gap-3 px-3 py-2 rounded-md border border-transparent hover:border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors duration-150"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="truncate text-sm font-medium text-[var(--color-foreground)]">
+            {frontmatter.title}
+          </span>
+          {status === 'draft' && (
+            <span className="flex-shrink-0 px-1.5 py-0.5 text-[10px] rounded-full bg-[var(--color-warning-background)] text-[var(--color-warning)]">
+              Draft
+            </span>
+          )}
+          {frontmatter.isPrivate && (
+            <span className="flex-shrink-0 px-1.5 py-0.5 text-[10px] rounded-full bg-[var(--color-error-background)] text-[var(--color-error)]">
+              Private
+            </span>
+          )}
+        </div>
+        <span
+          className={`flex-shrink-0 w-2 h-2 rounded-full ${skillLevelDotColors[frontmatter.skillLevel]}`}
+          title={skillLevelLabels[frontmatter.skillLevel]}
+        />
+      </Link>
+    );
+  }
 
   return (
     <Link

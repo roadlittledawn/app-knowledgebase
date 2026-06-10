@@ -93,6 +93,7 @@ function buildTree(
       slug: cat.slug,
       order: cat.order,
       entryCount: entryCounts.get(id) || 0,
+      totalEntryCount: 0,
       children: [],
     });
   }
@@ -110,12 +111,20 @@ function buildTree(
     }
   }
 
-  // Sort children by order
+  // Sort children by explicit order, falling back to alphabetical (A–Z) by name
   const sortChildren = (nodes: CategoryTreeNode[]) => {
-    nodes.sort((a, b) => a.order - b.order);
+    nodes.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
     nodes.forEach((n) => sortChildren(n.children));
   };
   sortChildren(roots);
+
+  // Compute rollup counts (self + all descendants)
+  const computeTotals = (node: CategoryTreeNode): number => {
+    const childrenTotal = node.children.reduce((sum, child) => sum + computeTotals(child), 0);
+    node.totalEntryCount = node.entryCount + childrenTotal;
+    return node.totalEntryCount;
+  };
+  roots.forEach(computeTotals);
 
   return roots;
 }
@@ -124,7 +133,7 @@ function buildTree(
  * Static method to get full category tree
  */
 CategorySchema.statics.getTree = async function (): Promise<CategoryTreeNode[]> {
-  const categories = await this.find().sort({ order: 1 }).lean();
+  const categories = await this.find().sort({ order: 1, name: 1 }).lean();
   // Entry counts would be populated by a separate aggregation
   // For now, return tree without counts (counts added at query time)
   return buildTree(categories as CategoryDocument[]);

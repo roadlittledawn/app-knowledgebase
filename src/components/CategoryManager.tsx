@@ -10,6 +10,23 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { CategoryTreeNode, ICategory } from '@/types/category';
 
 interface CreateCategoryRequest {
@@ -33,7 +50,7 @@ interface CategoryManagerProps {
   onCreateCategory: (data: CreateCategoryRequest) => Promise<ICategory>;
   onUpdateCategory: (id: string, data: UpdateCategoryRequest) => Promise<ICategory>;
   onDeleteCategory: (id: string) => Promise<void>;
-  onReorderCategories: (categoryId: string, newOrder: number) => Promise<void>;
+  onReorderCategories: (parentId: string | null, orderedIds: string[]) => Promise<void>;
   onRefresh: () => Promise<void>;
 }
 
@@ -76,6 +93,43 @@ function findNodeById(nodes: CategoryTreeNode[], id: string): CategoryTreeNode |
   return null;
 }
 
+/** Get the ordered sibling list (the array containing the node) for a given node ID */
+function getSiblings(nodes: CategoryTreeNode[], targetId: string): CategoryTreeNode[] | null {
+  if (nodes.some((n) => n._id === targetId)) return nodes;
+  for (const node of nodes) {
+    const found = getSiblings(node.children, targetId);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Order a list of nodes to match the given ID sequence (ignores unknown IDs) */
+function orderById(items: CategoryTreeNode[], orderedIds: string[]): CategoryTreeNode[] {
+  const map = new Map(items.map((item) => [item._id, item]));
+  return orderedIds
+    .map((id) => map.get(id))
+    .filter((node): node is CategoryTreeNode => Boolean(node));
+}
+
+/**
+ * Return a new tree with the children of `parentId` (or the root list when
+ * parentId is null) reordered to match `orderedIds`. Other branches are left intact.
+ */
+function reorderSiblings(
+  nodes: CategoryTreeNode[],
+  parentId: string | null,
+  orderedIds: string[]
+): CategoryTreeNode[] {
+  if (parentId === null) {
+    return orderById(nodes, orderedIds);
+  }
+  return nodes.map((node) =>
+    node._id === parentId
+      ? { ...node, children: orderById(node.children, orderedIds) }
+      : { ...node, children: reorderSiblings(node.children, parentId, orderedIds) }
+  );
+}
+
 /** Find the parent ID of a node in the tree */
 function findParentId(
   nodes: CategoryTreeNode[],
@@ -104,15 +158,11 @@ interface CategoryNodeProps {
   onStartDelete: (categoryId: string) => void;
   onConfirmDelete: (categoryId: string) => void;
   onCancelDelete: () => void;
-  onMoveUp: (categoryId: string, currentOrder: number) => void;
-  onMoveDown: (categoryId: string, currentOrder: number) => void;
   onStartMove: (categoryId: string) => void;
   onStartCreate: (parentId: string | null) => void;
   creatingParentId: string | null | undefined;
   onCancelCreate: () => void;
   onSubmitCreate: (name: string) => void;
-  isFirst: boolean;
-  isLast: boolean;
 }
 
 function CategoryNode({
@@ -129,21 +179,26 @@ function CategoryNode({
   onStartDelete,
   onConfirmDelete,
   onCancelDelete,
-  onMoveUp,
-  onMoveDown,
   onStartMove,
   onStartCreate,
   creatingParentId,
   onCancelCreate,
   onSubmitCreate,
-  isFirst,
-  isLast,
 }: CategoryNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node._id);
   const isEditing = editingId === node._id;
   const isDeleting = deletingId === node._id;
   const isCreatingChild = creatingParentId === node._id;
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: node._id,
+  });
+  const sortableStyle: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   // Use node.name as initial value
   const [editName, setEditName] = useState(node.name);
@@ -193,11 +248,25 @@ function CategoryNode({
   };
 
   return (
-    <div>
+    <div ref={setNodeRef} style={sortableStyle}>
       <div
         className="group flex items-center gap-1 px-2 py-1.5 text-sm rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
         style={{ paddingLeft: `${level * 20 + 8}px` }}
       >
+        {/* Drag handle */}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity touch-none"
+          title="Drag to reorder"
+          aria-label={`Drag to reorder ${node.name}`}
+        >
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM7 10a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM7 16a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM16 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM16 10a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM16 16a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+          </svg>
+        </button>
+
         {/* Expand/collapse toggle */}
         {hasChildren || isCreatingChild ? (
           <button
@@ -289,42 +358,6 @@ function CategoryNode({
 
             {/* Action buttons */}
             <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity">
-              {/* Move up */}
-              <button
-                type="button"
-                onClick={() => onMoveUp(node._id, node.order)}
-                disabled={isFirst}
-                className="p-1 text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface)] rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Move up"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-              </button>
-
-              {/* Move down */}
-              <button
-                type="button"
-                onClick={() => onMoveDown(node._id, node.order)}
-                disabled={isLast}
-                className="p-1 text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface)] rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Move down"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
               {/* Add child */}
               <button
                 type="button"
@@ -405,33 +438,34 @@ function CategoryNode({
       {/* Children */}
       {(hasChildren || isCreatingChild) && isExpanded && (
         <div>
-          {node.children.map((child, index) => (
-            <CategoryNode
-              key={child._id}
-              node={child}
-              level={level + 1}
-              expandedIds={expandedIds}
-              editingId={editingId}
-              deletingId={deletingId}
-              movingId={movingId}
-              onToggle={onToggle}
-              onStartEdit={onStartEdit}
-              onCancelEdit={onCancelEdit}
-              onSubmitEdit={onSubmitEdit}
-              onStartDelete={onStartDelete}
-              onConfirmDelete={onConfirmDelete}
-              onCancelDelete={onCancelDelete}
-              onMoveUp={onMoveUp}
-              onMoveDown={onMoveDown}
-              onStartMove={onStartMove}
-              onStartCreate={onStartCreate}
-              creatingParentId={creatingParentId}
-              onCancelCreate={onCancelCreate}
-              onSubmitCreate={onSubmitCreate}
-              isFirst={index === 0}
-              isLast={index === node.children.length - 1}
-            />
-          ))}
+          <SortableContext
+            items={node.children.map((c) => c._id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {node.children.map((child) => (
+              <CategoryNode
+                key={child._id}
+                node={child}
+                level={level + 1}
+                expandedIds={expandedIds}
+                editingId={editingId}
+                deletingId={deletingId}
+                movingId={movingId}
+                onToggle={onToggle}
+                onStartEdit={onStartEdit}
+                onCancelEdit={onCancelEdit}
+                onSubmitEdit={onSubmitEdit}
+                onStartDelete={onStartDelete}
+                onConfirmDelete={onConfirmDelete}
+                onCancelDelete={onCancelDelete}
+                onStartMove={onStartMove}
+                onStartCreate={onStartCreate}
+                creatingParentId={creatingParentId}
+                onCancelCreate={onCancelCreate}
+                onSubmitCreate={onSubmitCreate}
+              />
+            ))}
+          </SortableContext>
           {isCreatingChild && (
             <InlineCreateForm
               level={level + 1}
@@ -538,6 +572,18 @@ export function CategoryManager({
   const [creatingParentId, setCreatingParentId] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
 
+  // Local copy of the tree so drag-and-drop reorders can be applied optimistically
+  // (no refetch / page reload). Kept in sync with the prop for other operations.
+  const [localTree, setLocalTree] = useState<CategoryTreeNode[]>(tree);
+  useEffect(() => {
+    setLocalTree(tree);
+  }, [tree]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const handleToggle = useCallback((categoryId: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -599,30 +645,41 @@ export function CategoryManager({
     setDeletingId(null);
   }, []);
 
-  const handleMoveUp = useCallback(
-    async (categoryId: string, currentOrder: number) => {
-      try {
-        setError(null);
-        await onReorderCategories(categoryId, currentOrder - 1);
-        await onRefresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to reorder category');
-      }
-    },
-    [onReorderCategories, onRefresh]
-  );
+  // Reorder within a sibling group via drag-and-drop. Dragging across different
+  // parents is ignored here — reparenting is handled by the dedicated "move" control.
+  // The new order is applied optimistically and persisted by renumbering the whole
+  // sibling group (avoids duplicate/negative order values).
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
 
-  const handleMoveDown = useCallback(
-    async (categoryId: string, currentOrder: number) => {
-      try {
-        setError(null);
-        await onReorderCategories(categoryId, currentOrder + 1);
-        await onRefresh();
-      } catch (err) {
+      const activeId = String(active.id);
+      const overId = String(over.id);
+
+      const activeParent = findParentId(localTree, activeId) ?? null;
+      const overParent = findParentId(localTree, overId) ?? null;
+      if (activeParent !== overParent) return;
+
+      const siblings = getSiblings(localTree, activeId);
+      if (!siblings) return;
+      const ids = siblings.map((s) => s._id);
+      const oldIndex = ids.indexOf(activeId);
+      const newIndex = ids.indexOf(overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newOrderedIds = arrayMove(ids, oldIndex, newIndex);
+      const previousTree = localTree;
+
+      // Optimistic update, then persist; revert on failure.
+      setLocalTree(reorderSiblings(localTree, activeParent, newOrderedIds));
+      setError(null);
+      onReorderCategories(activeParent, newOrderedIds).catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to reorder category');
-      }
+        setLocalTree(previousTree);
+      });
     },
-    [onReorderCategories, onRefresh]
+    [localTree, onReorderCategories]
   );
 
   const handleStartCreate = useCallback((parentId: string | null) => {
@@ -672,10 +729,10 @@ export function CategoryManager({
       setDeletingId(null);
       setCreatingParentId(undefined);
       // Pre-select the current parent
-      const currentParentId = findParentId(tree, categoryId);
+      const currentParentId = findParentId(localTree, categoryId);
       setSelectedNewParentId(currentParentId ?? null);
     },
-    [movingId, tree]
+    [movingId, localTree]
   );
 
   const handleCancelMove = useCallback(() => {
@@ -687,7 +744,7 @@ export function CategoryManager({
     if (!movingId || selectedNewParentId === undefined) return;
 
     // Check if the parent is actually changing
-    const currentParentId = findParentId(tree, movingId);
+    const currentParentId = findParentId(localTree, movingId);
     if (selectedNewParentId === currentParentId) {
       setMovingId(null);
       setSelectedNewParentId(undefined);
@@ -706,23 +763,23 @@ export function CategoryManager({
     } finally {
       setIsMoving(false);
     }
-  }, [movingId, selectedNewParentId, tree, onUpdateCategory, onRefresh]);
+  }, [movingId, selectedNewParentId, localTree, onUpdateCategory, onRefresh]);
 
   // Compute valid parent options for the moving category
   const moveOptions = (() => {
     if (!movingId) return [];
-    const movingNode = findNodeById(tree, movingId);
+    const movingNode = findNodeById(localTree, movingId);
     if (!movingNode) return [];
     const excludedIds = collectDescendantIds(movingNode);
-    const flat = flattenTree(tree);
+    const flat = flattenTree(localTree);
     return flat.filter((c) => !excludedIds.has(c._id));
   })();
 
-  const movingNode = movingId ? findNodeById(tree, movingId) : null;
-  const currentParentIdOfMoving = movingId ? (findParentId(tree, movingId) ?? null) : null;
+  const movingNode = movingId ? findNodeById(localTree, movingId) : null;
+  const currentParentIdOfMoving = movingId ? (findParentId(localTree, movingId) ?? null) : null;
   const selectedParentName = (() => {
     if (selectedNewParentId === undefined || selectedNewParentId === null) return null;
-    const node = findNodeById(tree, selectedNewParentId);
+    const node = findNodeById(localTree, selectedNewParentId);
     return node?.name ?? null;
   })();
   const isParentChanged =
@@ -827,39 +884,42 @@ export function CategoryManager({
       )}
 
       <div className="space-y-0.5">
-        {tree.map((node, index) => (
-          <CategoryNode
-            key={node._id}
-            node={node}
-            level={0}
-            expandedIds={expandedIds}
-            editingId={editingId}
-            deletingId={deletingId}
-            movingId={movingId}
-            onToggle={handleToggle}
-            onStartEdit={handleStartEdit}
-            onCancelEdit={handleCancelEdit}
-            onSubmitEdit={handleSubmitEdit}
-            onStartDelete={handleStartDelete}
-            onConfirmDelete={handleConfirmDelete}
-            onCancelDelete={handleCancelDelete}
-            onMoveUp={handleMoveUp}
-            onMoveDown={handleMoveDown}
-            onStartMove={handleStartMove}
-            onStartCreate={handleStartCreate}
-            creatingParentId={creatingParentId}
-            onCancelCreate={handleCancelCreate}
-            onSubmitCreate={handleSubmitCreate}
-            isFirst={index === 0}
-            isLast={index === tree.length - 1}
-          />
-        ))}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={localTree.map((n) => n._id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {localTree.map((node) => (
+              <CategoryNode
+                key={node._id}
+                node={node}
+                level={0}
+                expandedIds={expandedIds}
+                editingId={editingId}
+                deletingId={deletingId}
+                movingId={movingId}
+                onToggle={handleToggle}
+                onStartEdit={handleStartEdit}
+                onCancelEdit={handleCancelEdit}
+                onSubmitEdit={handleSubmitEdit}
+                onStartDelete={handleStartDelete}
+                onConfirmDelete={handleConfirmDelete}
+                onCancelDelete={handleCancelDelete}
+                onStartMove={handleStartMove}
+                onStartCreate={handleStartCreate}
+                creatingParentId={creatingParentId}
+                onCancelCreate={handleCancelCreate}
+                onSubmitCreate={handleSubmitCreate}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
 
         {isCreatingAtRoot && (
           <InlineCreateForm level={0} onCancel={handleCancelCreate} onSubmit={handleSubmitCreate} />
         )}
 
-        {tree.length === 0 && !isCreatingAtRoot && (
+        {localTree.length === 0 && !isCreatingAtRoot && (
           <div className="py-8 text-center text-sm text-[var(--color-foreground-muted)]">
             No categories yet. Click &quot;Add Category&quot; to create your first one.
           </div>
