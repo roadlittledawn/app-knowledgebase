@@ -263,6 +263,20 @@ a:not(.prose *) {
   cursor: pointer;
 }
 
+/**
+ * Cursor pointer for all buttons by default.
+ * Kept at element-selector specificity (0,0,1) so any explicit Tailwind cursor
+ * utility (e.g. cursor-grab on a drag handle, disabled:cursor-not-allowed)
+ * overrides it. Disabled buttons fall back to not-allowed.
+ */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 /* Code block styles using tokens */
 code {
   background-color: var(--color-code-background);
