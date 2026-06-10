@@ -54,3 +54,27 @@ export interface UpdateCategoryInput {
   order?: number;
   description?: string;
 }
+
+/**
+ * Lightweight entry stub for the file explorer tree
+ */
+export interface FileExplorerEntryStub {
+  _id: string;
+  slug: string;
+  title: string;
+}
+
+/**
+ * Extended tree node that includes entry stubs as leaves
+ * Used by the file explorer navigation
+ */
+export interface FileExplorerTreeNode {
+  _id: string;
+  name: string;
+  slug: string;
+  order: number;
+  entryCount: number;
+  totalEntryCount: number;
+  entries: FileExplorerEntryStub[];
+  children: FileExplorerTreeNode[];
+}
