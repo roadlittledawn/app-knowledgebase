@@ -155,6 +155,13 @@ export function TopNav({ className = '' }: TopNavProps) {
             {dropdownOpen && (
               <div className="absolute right-0 top-full mt-1 w-44 z-50 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg py-1">
                 <Link
+                  href="/search"
+                  className={`block px-4 py-2 text-sm ${linkClasses('/search')}`}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  Search
+                </Link>
+                <Link
                   href="/browse"
                   className={`block px-4 py-2 text-sm ${linkClasses('/browse')}`}
                   onClick={() => setDropdownOpen(false)}

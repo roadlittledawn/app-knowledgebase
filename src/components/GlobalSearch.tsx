@@ -32,11 +32,10 @@ export function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [totalResults, setTotalResults] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const closeSearch = useCallback(() => {
     setIsOpen(false);
@@ -78,7 +77,6 @@ export function GlobalSearch() {
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
       setResults([]);
-      setTotalResults(0);
       return;
     }
 
@@ -89,10 +87,8 @@ export function GlobalSearch() {
       if (!res.ok) throw new Error('Search failed');
       const data: SearchResponse = await res.json();
       setResults(data.results);
-      setTotalResults(data.total);
     } catch {
       setResults([]);
-      setTotalResults(0);
     } finally {
       setIsLoading(false);
     }
@@ -241,14 +237,12 @@ export function GlobalSearch() {
                   </li>
                 ))}
               </ul>
-              {totalResults > results.length && (
-                <button
-                  onClick={navigateToFullResults}
-                  className="w-full px-4 py-2.5 text-sm text-[var(--color-primary)] hover:bg-[var(--color-surface-hover)] border-t border-[var(--color-border)] cursor-pointer text-center"
-                >
-                  See all {totalResults} results
-                </button>
-              )}
+              <button
+                onClick={navigateToFullResults}
+                className="w-full px-4 py-2.5 text-sm text-[var(--color-primary)] hover:bg-[var(--color-surface-hover)] border-t border-[var(--color-border)] cursor-pointer text-center"
+              >
+                See all results
+              </button>
             </>
           )}
         </div>

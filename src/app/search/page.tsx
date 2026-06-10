@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchResults } from '@/components/SearchResults';
 import { SearchBar } from '@/components/SearchBar';
 import type { IEntry } from '@/types/entry';
@@ -21,6 +21,7 @@ interface SearchResponse {
 }
 
 function SearchPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
 
@@ -65,9 +66,9 @@ function SearchPageContent() {
     (q: string) => {
       setQuery(q);
       performSearch(q);
-      window.history.replaceState(null, '', `/search?q=${encodeURIComponent(q)}`);
+      router.replace(`/search?q=${encodeURIComponent(q)}`);
     },
-    [performSearch]
+    [performSearch, router]
   );
 
   return (

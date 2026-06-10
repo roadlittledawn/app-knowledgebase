@@ -148,19 +148,6 @@ export default async function EntryDetailPage({ params }: PageProps) {
     updatedAt: entry.updatedAt,
   };
 
-  const rightSidebar = (
-    <div className="h-full overflow-y-auto">
-      <div className="p-5 pb-4 border-b border-[var(--color-border)]">
-        <OnThisPage />
-      </div>
-      <EntrySidebar
-        entry={sidebarEntry}
-        relatedEntries={relatedEntries}
-        authenticated={authenticated}
-      />
-    </div>
-  );
-
   return (
     <div className="flex-1 flex min-h-0">
       {/* Mobile drawer */}
@@ -173,22 +160,22 @@ export default async function EntryDetailPage({ params }: PageProps) {
 
       <ResizableLayout
         sidebar={<FileExplorerNav tree={categoryTree} activeEntrySlug={entry.slug} />}
-        rightSidebar={rightSidebar}
       >
-        <main id="entry-scroll-area" className="h-full overflow-y-auto">
-          {/* Entry details collapsible — hidden on xl when right sidebar is visible */}
-          <CollapsibleSection
-            title="Entry Details"
-            className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
-          >
-            <OnThisPage />
-            <div className="my-4 border-t border-[var(--color-border)]" />
-            <EntrySidebar
-              entry={sidebarEntry}
-              relatedEntries={relatedEntries}
-              authenticated={authenticated}
-            />
-          </CollapsibleSection>
+        <div className="flex h-full min-h-0">
+          <main id="entry-scroll-area" className="flex-1 min-w-0 h-full overflow-y-auto">
+            {/* Entry details collapsible — visible below xl where right sidebar is hidden */}
+            <CollapsibleSection
+              title="Entry Details"
+              className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
+            >
+              <OnThisPage />
+              <div className="my-4 border-t border-[var(--color-border)]" />
+              <EntrySidebar
+                entry={sidebarEntry}
+                relatedEntries={relatedEntries}
+                authenticated={authenticated}
+              />
+            </CollapsibleSection>
 
           <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
             <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
@@ -218,7 +205,20 @@ export default async function EntryDetailPage({ params }: PageProps) {
               </Link>
             </footer>
           </article>
-        </main>
+          </main>
+
+          {/* Right sidebar — On This Page + metadata (xl+ only) */}
+          <aside className="hidden xl:flex xl:flex-col w-72 flex-shrink-0 border-l border-[var(--color-border)] overflow-y-auto">
+            <div className="p-5 pb-4 border-b border-[var(--color-border)]">
+              <OnThisPage />
+            </div>
+            <EntrySidebar
+              entry={sidebarEntry}
+              relatedEntries={relatedEntries}
+              authenticated={authenticated}
+            />
+          </aside>
+        </div>
       </ResizableLayout>
     </div>
   );
