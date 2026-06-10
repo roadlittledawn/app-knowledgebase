@@ -11,7 +11,8 @@ interface CategoryNavSidebarProps {
 
 /**
  * Wraps CategoryTree for use in server-component pages (e.g. entry detail).
- * Selecting any category navigates back to /browse.
+ * Selecting a category navigates to that category's browse page; selecting
+ * "All Entries" navigates to /browse with no category filter.
  */
 export function CategoryNavSidebar({ tree, selectedCategoryId }: CategoryNavSidebarProps) {
   const router = useRouter();
@@ -20,7 +21,9 @@ export function CategoryNavSidebar({ tree, selectedCategoryId }: CategoryNavSide
     <CategoryTree
       tree={tree}
       selectedCategoryId={selectedCategoryId}
-      onSelect={() => router.push('/browse')}
+      onSelect={(categoryId) =>
+        router.push(categoryId ? `/browse?categoryId=${categoryId}` : '/browse')
+      }
     />
   );
 }

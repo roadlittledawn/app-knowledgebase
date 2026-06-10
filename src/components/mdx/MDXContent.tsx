@@ -142,6 +142,7 @@ const components = {
   CollapserGroup,
   Column,
   Grid,
+  Heading,
   Link,
   List,
   ListItem,

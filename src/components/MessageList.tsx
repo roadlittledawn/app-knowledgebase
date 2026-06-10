@@ -7,7 +7,7 @@
  * Requirement 7.8: Chat UI components
  */
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { SourceCitations, type SourceCitation } from './SourceCitations';
 
@@ -24,11 +24,26 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, streamingContent, sources }: MessageListProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Whether the user is currently scrolled to (near) the bottom. We only
+  // auto-scroll on new content when this is true, so scrolling up to read
+  // previous messages is never interrupted by streaming updates.
+  const isAtBottomRef = useRef(true);
 
-  // Auto-scroll to bottom when new messages arrive
+  const handleScroll = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isAtBottomRef.current = distanceFromBottom < 80;
+  }, []);
+
+  // Auto-scroll the message container (not the page) when new content arrives,
+  // but only if the user was already at the bottom.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = containerRef.current;
+    if (el && isAtBottomRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [messages, streamingContent]);
 
   if (messages.length === 0 && !streamingContent) {
@@ -57,7 +72,7 @@ export function MessageList({ messages, streamingContent, sources }: MessageList
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4">
       {messages.map((message) => (
         <MessageBubble key={message.id} role={message.role} content={message.content} />
       ))}
@@ -69,7 +84,6 @@ export function MessageList({ messages, streamingContent, sources }: MessageList
           <SourceCitations sources={sources} />
         </div>
       )}
-      <div ref={bottomRef} />
     </div>
   );
 }

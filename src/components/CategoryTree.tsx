@@ -81,7 +81,7 @@ function CategoryNode({
         )}
         {!hasChildren && <span className="w-4" />}
         <span className="flex-1 truncate">{node.name}</span>
-        {node.entryCount > 0 && (
+        {node.totalEntryCount > 0 && (
           <span
             className={`
               text-xs px-1.5 py-0.5 rounded-full
@@ -92,7 +92,7 @@ function CategoryNode({
               }
             `}
           >
-            {node.entryCount}
+            {node.totalEntryCount}
           </span>
         )}
       </button>

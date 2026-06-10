@@ -11,7 +11,8 @@
  * - 5.1: Search the knowledgebase using keywords and natural language
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CategoryTree } from '@/components/CategoryTree';
 import { EntryCard } from '@/components/EntryCard';
 import { SearchBar } from '@/components/SearchBar';
@@ -49,11 +50,67 @@ interface SearchResponse {
   mode: string;
 }
 
-export default function BrowsePage() {
+/**
+ * Collect a category's ID plus all of its descendants' IDs, so a parent category
+ * page rolls up entries from every nested sub-category. Returns just the id if
+ * the node isn't found yet (e.g. tree still loading).
+ */
+function collectCategoryAndDescendantIds(tree: CategoryTreeNode[], targetId: string): string[] {
+  const findNode = (nodes: CategoryTreeNode[]): CategoryTreeNode | null => {
+    for (const node of nodes) {
+      if (node._id === targetId) return node;
+      const found = findNode(node.children);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  const collect = (node: CategoryTreeNode): string[] => [
+    node._id,
+    ...node.children.flatMap(collect),
+  ];
+
+  const node = findNode(tree);
+  return node ? collect(node) : [targetId];
+}
+
+/** Find a category node by ID anywhere in the tree. */
+function findCategoryNode(tree: CategoryTreeNode[], targetId: string): CategoryTreeNode | null {
+  for (const node of tree) {
+    if (node._id === targetId) return node;
+    const found = findCategoryNode(node.children, targetId);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Flatten a category subtree into a depth-first ordered list (including the root
+ * node itself). `trail` holds the names of intermediate ancestors between the
+ * selected root and the node (excluding both), used as a breadcrumb hint so the
+ * grouped view can convey hierarchy without ragged indentation.
+ */
+function flattenSubtree(
+  node: CategoryTreeNode,
+  depth = 0,
+  trail: string[] = []
+): { node: CategoryTreeNode; depth: number; trail: string[] }[] {
+  const childTrail = depth === 0 ? [] : [...trail, node.name];
+  return [
+    { node, depth, trail },
+    ...node.children.flatMap((child) => flattenSubtree(child, depth + 1, childTrail)),
+  ];
+}
+
+function BrowsePageContent() {
   const { close } = useMobileNav();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // The selected category is driven by the `categoryId` URL param so that links
+  // (breadcrumbs, left nav) and browser back/forward stay in sync with the view.
+  const selectedCategoryId = searchParams.get('categoryId');
   const [tree, setTree] = useState<CategoryTreeNode[]>([]);
   const [entries, setEntries] = useState<Omit<IEntry, 'body'>[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,19 +164,32 @@ export default function BrowsePage() {
     fetchTags();
   }, []);
 
+  // The currently selected category node, and whether to show the grouped-by-
+  // sub-category view (a parent with sub-categories) vs a flat paginated list.
+  const selectedNode = selectedCategoryId ? findCategoryNode(tree, selectedCategoryId) : null;
+  const isGroupedView = !!selectedNode && selectedNode.children.length > 0;
+
   // Fetch entries when category, page, or filters change
   const fetchEntries = useCallback(async () => {
     setEntriesLoading(true);
     try {
       const params = new URLSearchParams();
+      const node = selectedCategoryId ? findCategoryNode(tree, selectedCategoryId) : null;
+      const grouped = !!node && node.children.length > 0;
+
       if (selectedCategoryId) {
-        params.set('categoryId', selectedCategoryId);
+        // Roll up the selected category and all of its sub-categories.
+        collectCategoryAndDescendantIds(tree, selectedCategoryId).forEach((id) =>
+          params.append('categoryId', id)
+        );
       }
       // Add filter parameters
       selectedTags.forEach((tag) => params.append('tag', tag));
       selectedLanguages.forEach((language) => params.append('language', language));
-      params.set('page', page.toString());
-      params.set('limit', '20');
+      // Grouped view renders all entries organized by sub-category, so fetch them
+      // all in one page rather than paginating across group boundaries.
+      params.set('page', grouped ? '1' : page.toString());
+      params.set('limit', grouped ? '500' : '20');
 
       const res = await fetch(`/api/entries?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch entries');
@@ -132,15 +202,15 @@ export default function BrowsePage() {
     } finally {
       setEntriesLoading(false);
     }
-  }, [selectedCategoryId, page, selectedTags, selectedLanguages]);
+  }, [selectedCategoryId, page, selectedTags, selectedLanguages, tree]);
 
   useEffect(() => {
     fetchEntries();
   }, [fetchEntries]);
 
   const handleCategorySelect = (categoryId: string | null) => {
-    setSelectedCategoryId(categoryId);
-    setPage(1); // Reset to first page when category changes
+    // Update the URL param; the view derives its category from it.
+    router.push(categoryId ? `/browse?categoryId=${categoryId}` : '/browse');
     // Exit search mode when selecting a category
     setIsSearchMode(false);
     setSearchQuery('');
@@ -148,6 +218,12 @@ export default function BrowsePage() {
     setSearchError(null);
     close();
   };
+
+  // Reset to the first page whenever the selected category changes (covers both
+  // in-app selection and navigation via breadcrumb links / browser history).
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategoryId]);
 
   // Clear all filters
   const handleClearFilters = useCallback(() => {
@@ -333,6 +409,56 @@ export default function BrowsePage() {
                       No entries found in this category.
                     </p>
                   </div>
+                ) : isGroupedView && selectedNode ? (
+                  // Grouped view: entries organized by sub-category, mirroring the
+                  // left-nav hierarchy (depth-first, indented by depth).
+                  (() => {
+                    const entriesByCategory = new Map<string, typeof entries>();
+                    for (const entry of entries) {
+                      const list = entriesByCategory.get(entry.categoryId) ?? [];
+                      list.push(entry);
+                      entriesByCategory.set(entry.categoryId, list);
+                    }
+                    const sections = flattenSubtree(selectedNode).filter(
+                      ({ node }) => (entriesByCategory.get(node._id)?.length ?? 0) > 0
+                    );
+                    return (
+                      <div className="space-y-6">
+                        {sections.map(({ node, depth, trail }) => {
+                          const sectionEntries = entriesByCategory.get(node._id) ?? [];
+                          return (
+                            <section key={node._id}>
+                              {/* Skip a header for the selected category's own entries —
+                                  the page heading already names it. */}
+                              {depth > 0 && (
+                                <div className="mb-2 flex items-baseline gap-2 border-b border-[var(--color-border)] pb-1.5">
+                                  {trail.length > 0 && (
+                                    <span className="text-xs text-[var(--color-foreground-muted)]">
+                                      {trail.join(' / ')} /
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={() => handleCategorySelect(node._id)}
+                                    className="text-sm font-semibold text-[var(--color-foreground)] hover:text-[var(--color-primary)] cursor-pointer"
+                                  >
+                                    {node.name}
+                                  </button>
+                                  <span className="text-xs text-[var(--color-foreground-muted)]">
+                                    {sectionEntries.length}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="space-y-1">
+                                {sectionEntries.map((entry) => (
+                                  <EntryCard key={entry._id} entry={entry} compact />
+                                ))}
+                              </div>
+                            </section>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()
                 ) : (
                   <>
                     <div className="space-y-4">
@@ -388,5 +514,19 @@ export default function BrowsePage() {
           </div>
         </aside>
     </div>
+  );
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-[var(--color-foreground-muted)]">Loading...</div>
+        </div>
+      }
+    >
+      <BrowsePageContent />
+    </Suspense>
   );
 }
