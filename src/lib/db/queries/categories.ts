@@ -6,7 +6,7 @@
 import { connectToDatabase } from '@/lib/db/connection';
 import { Category } from '@/lib/db/models/Category';
 import { Entry } from '@/lib/db/models/Entry';
-import type { ICategory, CategoryTreeNode } from '@/types/category';
+import type { ICategory, CategoryTreeNode, FileExplorerTreeNode, FileExplorerEntryStub } from '@/types/category';
 
 /**
  * Input type for categories that can be either Mongoose documents or plain objects
@@ -181,6 +181,62 @@ export async function getCategoryTreeWithCounts(): Promise<CategoryTreeNode[]> {
 
   // Build and return the tree
   return buildTree(categories, entryCounts);
+}
+
+/**
+ * Get the full category tree with entry stubs attached to each node.
+ * Used by the file explorer nav to render entries as leaves.
+ *
+ * @param authenticated - Whether the requesting user is authenticated (controls entry visibility)
+ */
+export async function getCategoryTreeWithEntries(
+  authenticated: boolean
+): Promise<FileExplorerTreeNode[]> {
+  await connectToDatabase();
+
+  const categories = await Category.find().sort({ order: 1, name: 1 }).lean();
+
+  const visibilityFilter: Record<string, unknown> = authenticated
+    ? {}
+    : { status: 'published', 'frontmatter.isPrivate': { $ne: true } };
+
+  const entryDocs = await Entry.find(visibilityFilter)
+    .select('_id slug frontmatter.title categoryId')
+    .sort({ 'frontmatter.title': 1 })
+    .lean();
+
+  const entriesByCategory = new Map<string, FileExplorerEntryStub[]>();
+  for (const doc of entryDocs) {
+    const catId = doc.categoryId.toString();
+    const stub: FileExplorerEntryStub = {
+      _id: doc._id.toString(),
+      slug: doc.slug,
+      title: doc.frontmatter.title,
+    };
+    const list = entriesByCategory.get(catId);
+    if (list) {
+      list.push(stub);
+    } else {
+      entriesByCategory.set(catId, [stub]);
+    }
+  }
+
+  const entryCounts = new Map<string, number>();
+  for (const [catId, stubs] of entriesByCategory) {
+    entryCounts.set(catId, stubs.length);
+  }
+
+  const baseTree = buildTree(categories, entryCounts);
+
+  function attachEntries(nodes: CategoryTreeNode[]): FileExplorerTreeNode[] {
+    return nodes.map((node) => ({
+      ...node,
+      entries: entriesByCategory.get(node._id) || [],
+      children: attachEntries(node.children),
+    }));
+  }
+
+  return attachEntries(baseTree);
 }
 
 /**

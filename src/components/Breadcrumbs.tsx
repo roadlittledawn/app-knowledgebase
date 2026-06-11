@@ -39,7 +39,7 @@ export function Breadcrumbs({ categoryPath, entryTitle }: BreadcrumbsProps) {
         </li>
 
         {/* Category path */}
-        {categoryPath.map((category, index) => (
+        {categoryPath.map((category) => (
           <li key={category._id} className="flex items-center">
             <svg
               className="w-4 h-4 text-[var(--color-foreground-muted)] mx-1"
@@ -49,16 +49,7 @@ export function Breadcrumbs({ categoryPath, entryTitle }: BreadcrumbsProps) {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            {index === categoryPath.length - 1 && !entryTitle ? (
-              <span className="text-[var(--color-foreground)] font-medium">{category.name}</span>
-            ) : (
-              <Link
-                href={`/browse?categoryId=${category._id}`}
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
-              >
-                {category.name}
-              </Link>
-            )}
+            <span className="text-[var(--color-foreground-muted)]">{category.name}</span>
           </li>
         ))}
 
