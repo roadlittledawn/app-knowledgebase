@@ -29,6 +29,30 @@ export async function uploadToS3(
   return { s3Key, url };
 }
 
+export async function uploadFileToS3(
+  buffer: Buffer,
+  filename: string,
+  mimeType: string
+): Promise<{ s3Key: string; url: string }> {
+  const sanitized = sanitizeFilename(filename);
+  const s3Key = `files/${randomUUID()}-${sanitized}`;
+  const bucket = getS3BucketName();
+  const region = process.env.AWS_REGION || 'us-east-1';
+
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: s3Key,
+      Body: buffer,
+      ContentType: mimeType,
+      ContentDisposition: `inline; filename="${filename}"`,
+    })
+  );
+
+  const url = getS3PublicUrl(bucket, region, s3Key);
+  return { s3Key, url };
+}
+
 export async function deleteFromS3(s3Key: string): Promise<void> {
   try {
     await getS3Client().send(
