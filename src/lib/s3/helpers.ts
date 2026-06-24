@@ -45,12 +45,28 @@ export async function uploadFileToS3(
       Key: s3Key,
       Body: buffer,
       ContentType: mimeType,
-      ContentDisposition: `inline; filename="${filename}"`,
+      ContentDisposition: `inline; filename="${sanitized}"`,
     })
   );
 
   const url = getS3PublicUrl(bucket, region, s3Key);
   return { s3Key, url };
+}
+
+export async function overwriteFileInS3(
+  s3Key: string,
+  buffer: Buffer,
+  mimeType: string
+): Promise<void> {
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: getS3BucketName(),
+      Key: s3Key,
+      Body: buffer,
+      ContentType: mimeType,
+      ContentDisposition: `inline`,
+    })
+  );
 }
 
 export async function deleteFromS3(s3Key: string): Promise<void> {

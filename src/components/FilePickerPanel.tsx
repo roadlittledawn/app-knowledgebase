@@ -98,7 +98,7 @@ export function FilePickerPanel() {
   async function handleCopyEmbed(file: IFileAttachment) {
     const isEmbeddable = file.mimeType === 'text/html' || file.mimeType === 'application/pdf';
     const snippet = isEmbeddable
-      ? `<iframe src="${file.url}" width="100%" height="500" />`
+      ? `<iframe src="${file.url}" width="100%" height="500" sandbox="allow-scripts" />`
       : `[${file.filename}](${file.url})`;
     await navigator.clipboard.writeText(snippet);
     setCopiedEmbed(file.url);

@@ -11,7 +11,7 @@ import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { FileAttachment } from '@/lib/db/models/FileAttachment';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
-import { deleteFromS3, uploadFileToS3 } from '@/lib/s3';
+import { deleteFromS3, overwriteFileInS3 } from '@/lib/s3';
 import type { IFileAttachment } from '@/types/file-attachment';
 import type { FileAttachmentDocument } from '@/lib/db/models/FileAttachment';
 
@@ -148,15 +148,10 @@ export async function PUT(
       return NextResponse.json({ error: 'File size must not exceed 50MB' }, { status: 400 });
     }
 
-    // Delete old S3 object
-    await deleteFromS3(existing.s3Key);
-
-    // Upload new version
+    // Overwrite the same S3 key so the URL remains stable
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { s3Key, url } = await uploadFileToS3(buffer, file.name, file.type);
+    await overwriteFileInS3(existing.s3Key, buffer, file.type);
 
-    existing.s3Key = s3Key;
-    existing.url = url;
     existing.sizeBytes = file.size;
     existing.mimeType = file.type;
     await existing.save();

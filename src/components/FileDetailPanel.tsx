@@ -192,7 +192,7 @@ export function FileDetailPanel({ file, onClose }: FileDetailPanelProps) {
                     color: 'var(--color-foreground-secondary)',
                   }}
                 >
-                  {`<iframe src="${file.url}" width="100%" height="500" />`}
+                  {`<iframe src="${file.url}" width="100%" height="500" sandbox="allow-scripts" />`}
                 </code>
               </div>
             )}
