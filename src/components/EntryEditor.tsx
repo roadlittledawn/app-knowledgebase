@@ -17,9 +17,10 @@ import { MonacoPane } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { ImagePickerPanel } from './ImagePickerPanel';
+import { FilePickerPanel } from './FilePickerPanel';
 import { CategorySelector } from './CategorySelector';
 import { useTheme } from './ThemeProvider';
-import { Pencil, Eye, ClipboardList, Images, Bot, Check, Loader2, Database } from 'lucide-react';
+import { Pencil, Eye, ClipboardList, Images, Bot, Check, Loader2, Database, Paperclip } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
@@ -72,7 +73,7 @@ export function EntryEditor(props: EntryEditorProps) {
 }
 
 type LeftPanelView = 'editor' | 'preview';
-type RightPanelView = 'metadata' | 'images' | 'ai';
+type RightPanelView = 'metadata' | 'images' | 'files' | 'ai';
 
 function EntryEditorInner({
   entry,
@@ -382,6 +383,16 @@ function EntryEditorInner({
                 <Images className="w-4 h-4" /> Images
               </button>
               <button
+                onClick={() => setRightView('files')}
+                className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
+                  rightView === 'files'
+                    ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]'
+                    : 'text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)]'
+                }`}
+              >
+                <Paperclip className="w-4 h-4" /> Files
+              </button>
+              <button
                 onClick={() => setRightView('ai')}
                 className={`px-3 py-1 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
                   rightView === 'ai'
@@ -412,6 +423,8 @@ function EntryEditorInner({
               />
             ) : rightView === 'images' ? (
               <ImagePickerPanel />
+            ) : rightView === 'files' ? (
+              <FilePickerPanel />
             ) : (
               <AIWritingPanel
                 body={body}
