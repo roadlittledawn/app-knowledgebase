@@ -10,7 +10,7 @@
  * - 8.12: Support text selection tracking for AI writing assistance
  */
 
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { Theme } from '@/lib/theme';
 import type { editor, IRange } from 'monaco-editor';
@@ -67,6 +67,12 @@ export function MonacoPane({
 }: MonacoPaneProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const isIOS = useMemo(() => isIOSDevice(), []);
+  const [pasteLabel, setPasteLabel] = useState('Paste');
+
+  const flashPasteLabel = useCallback((label: string) => {
+    setPasteLabel(label);
+    setTimeout(() => setPasteLabel('Paste'), 2000);
+  }, []);
 
   const handleChange = (newValue: string | undefined) => {
     onChange(newValue ?? '');
@@ -110,7 +116,10 @@ export function MonacoPane({
 
     try {
       const text = await navigator.clipboard.readText();
-      if (!text) return;
+      if (!text) {
+        flashPasteLabel('Nothing to paste');
+        return;
+      }
 
       const selection = editorInstance.getSelection();
       const position = editorInstance.getPosition();
@@ -132,9 +141,10 @@ export function MonacoPane({
       editorInstance.executeEdits('ios-paste', [{ range, text }]);
       editorInstance.focus();
     } catch {
-      // Clipboard access denied or API unavailable — nothing to do.
+      // Clipboard access denied or API unavailable.
+      flashPasteLabel('Paste unavailable');
     }
-  }, []);
+  }, [flashPasteLabel]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -179,7 +189,7 @@ export function MonacoPane({
             opacity: 0.85,
           }}
         >
-          Paste
+          {pasteLabel}
         </button>
       )}
     </div>
