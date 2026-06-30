@@ -42,6 +42,10 @@ function getMonacoTheme(appTheme: Theme): string {
   return appTheme === 'dark' ? 'vs-dark' : 'light';
 }
 
+/**
+ * Detect iOS/iPadOS (including iPadOS “desktop mode”).
+ * Used to disable Monaco’s custom context menu so the native iOS paste menu works reliably.
+ */
 function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') {
     return false;
