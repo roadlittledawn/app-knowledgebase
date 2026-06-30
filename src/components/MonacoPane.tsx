@@ -10,7 +10,7 @@
  * - 8.12: Support text selection tracking for AI writing assistance
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import type { Theme } from '@/lib/theme';
 import type { editor } from 'monaco-editor';
@@ -42,6 +42,18 @@ function getMonacoTheme(appTheme: Theme): string {
   return appTheme === 'dark' ? 'vs-dark' : 'light';
 }
 
+function isIOSDevice(): boolean {
+  if (typeof navigator === 'undefined') {
+    return false;
+  }
+
+  const userAgent = navigator.userAgent || navigator.vendor || '';
+  const isiPhoneOrIPad = /iPad|iPhone|iPod/.test(userAgent);
+  const isIPadDesktopMode = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+  return isiPhoneOrIPad || isIPadDesktopMode;
+}
+
 export function MonacoPane({
   value,
   onChange,
@@ -50,6 +62,7 @@ export function MonacoPane({
   onSelectionChange,
 }: MonacoPaneProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const disableMonacoContextMenu = useMemo(() => isIOSDevice(), []);
 
   const handleChange = (newValue: string | undefined) => {
     onChange(newValue ?? '');
@@ -93,6 +106,7 @@ export function MonacoPane({
         automaticLayout: true,
         tabSize: 2,
         padding: { top: 16, bottom: 16 },
+        contextmenu: !disableMonacoContextMenu,
       }}
     />
   );
