@@ -62,7 +62,7 @@ export function MonacoPane({
   onSelectionChange,
 }: MonacoPaneProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  const disableMonacoContextMenu = useMemo(() => isIOSDevice(), []);
+  const isIOS = useMemo(() => isIOSDevice(), []);
 
   const handleChange = (newValue: string | undefined) => {
     onChange(newValue ?? '');
@@ -106,7 +106,7 @@ export function MonacoPane({
         automaticLayout: true,
         tabSize: 2,
         padding: { top: 16, bottom: 16 },
-        contextmenu: !disableMonacoContextMenu,
+        contextmenu: !isIOS,
       }}
     />
   );
