@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Category } from '@/lib/db/models/Category';
 import { Entry } from '@/lib/db/models/Entry';
+import { getAuthCookieName, verifyToken } from '@/lib/auth';
 import type { ICategory, UpdateCategoryInput } from '@/types/category';
 import mongoose from 'mongoose';
 
@@ -106,6 +107,12 @@ export async function PUT(
   { params }: RouteParams
 ): Promise<NextResponse<UpdateCategoryResponse | ErrorResponse>> {
   try {
+    const token = request.cookies.get(getAuthCookieName())?.value;
+    const payload = token ? await verifyToken(token) : null;
+    if (!payload) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     if (!isValidObjectId(id)) {
@@ -269,10 +276,16 @@ export async function PUT(
  * Delete a category (protected if entries reference it)
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse<DeleteCategoryResponse | ErrorResponse>> {
   try {
+    const token = request.cookies.get(getAuthCookieName())?.value;
+    const payload = token ? await verifyToken(token) : null;
+    if (!payload) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     if (!isValidObjectId(id)) {
