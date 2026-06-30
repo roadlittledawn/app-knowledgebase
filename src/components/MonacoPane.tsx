@@ -47,11 +47,11 @@ function isIOSDevice(): boolean {
     return false;
   }
 
-  const userAgent = (navigator.userAgent ?? '') || (navigator.vendor ?? '');
-  const isiPhoneOrIPad = /iPad|iPhone|iPod/.test(userAgent);
+  const userAgent = navigator.userAgent ?? navigator.vendor ?? '';
+  const isIPhoneOrIPad = /iPad|iPhone|iPod/.test(userAgent);
   const isIPadDesktopMode = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 
-  return isiPhoneOrIPad || isIPadDesktopMode;
+  return isIPhoneOrIPad || isIPadDesktopMode;
 }
 
 export function MonacoPane({
