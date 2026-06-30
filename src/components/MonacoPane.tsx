@@ -13,7 +13,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import type { Theme } from '@/lib/theme';
-import type { editor } from 'monaco-editor';
+import type { editor, IRange } from 'monaco-editor';
 
 // Dynamically import Monaco editor with SSR disabled (Requirement 6.9)
 const Editor = dynamic(() => import('@monaco-editor/react').then((mod) => mod.default), {
@@ -93,25 +93,95 @@ export function MonacoPane({
     [onSelectionChange]
   );
 
+  /**
+   * iOS-specific paste handler.
+   *
+   * On iOS Safari, Monaco's touch-event interception prevents the browser's
+   * native long-press paste popover from ever appearing. Disabling Monaco's
+   * custom context menu (contextmenu: false) removes the non-functional Monaco
+   * paste option but leaves users with no way to paste at all. This handler
+   * bridges that gap: it reads the clipboard via the Clipboard API (which iOS
+   * honours when invoked from a direct user gesture such as a button tap) and
+   * inserts the text at the current cursor position / selection.
+   */
+  const handleIOSPaste = useCallback(async () => {
+    const editorInstance = editorRef.current;
+    if (!editorInstance) return;
+
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+
+      const selection = editorInstance.getSelection();
+      const position = editorInstance.getPosition();
+
+      let range: IRange;
+      if (selection && !selection.isEmpty()) {
+        range = selection;
+      } else if (position) {
+        range = {
+          startLineNumber: position.lineNumber,
+          startColumn: position.column,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        };
+      } else {
+        range = { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 };
+      }
+
+      editorInstance.executeEdits('ios-paste', [{ range, text }]);
+      editorInstance.focus();
+    } catch {
+      // Clipboard access denied or API unavailable — nothing to do.
+    }
+  }, []);
+
   return (
-    <Editor
-      height="100%"
-      language={language}
-      value={value}
-      theme={getMonacoTheme(theme)}
-      onChange={handleChange}
-      onMount={handleEditorDidMount}
-      options={{
-        minimap: { enabled: false },
-        fontSize: 14,
-        lineNumbers: 'on',
-        wordWrap: 'on',
-        scrollBeyondLastLine: false,
-        automaticLayout: true,
-        tabSize: 2,
-        padding: { top: 16, bottom: 16 },
-        contextmenu: !isIOS,
-      }}
-    />
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      <Editor
+        height="100%"
+        language={language}
+        value={value}
+        theme={getMonacoTheme(theme)}
+        onChange={handleChange}
+        onMount={handleEditorDidMount}
+        options={{
+          minimap: { enabled: false },
+          fontSize: 14,
+          lineNumbers: 'on',
+          wordWrap: 'on',
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          tabSize: 2,
+          padding: { top: 16, bottom: 16 },
+          // Disable Monaco's custom context menu on iOS: it captures long-press
+          // events but clipboard insertion never fires, leaving paste broken.
+          // The iOS paste button below provides clipboard paste instead.
+          contextmenu: !isIOS,
+        }}
+      />
+      {isIOS && (
+        <button
+          onClick={handleIOSPaste}
+          aria-label="Paste from clipboard"
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 10,
+            padding: '4px 10px',
+            fontSize: 13,
+            borderRadius: 6,
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-foreground)',
+            cursor: 'pointer',
+            opacity: 0.85,
+          }}
+        >
+          Paste
+        </button>
+      )}
+    </div>
   );
 }
