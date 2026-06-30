@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Category } from '@/lib/db/models/Category';
+import { getAuthCookieName, verifyToken } from '@/lib/auth';
 
 interface ReorderRequest {
   parentId: string | null;
@@ -32,6 +33,12 @@ export async function PUT(
   request: NextRequest
 ): Promise<NextResponse<ReorderResponse | ErrorResponse>> {
   try {
+    const token = request.cookies.get(getAuthCookieName())?.value;
+    const payload = token ? await verifyToken(token) : null;
+    if (!payload) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = (await request.json()) as ReorderRequest;
     const { parentId, orderedIds } = body;
 
