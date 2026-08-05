@@ -314,6 +314,8 @@ pre code {
   color: var(--color-foreground);
   line-height: 1.75;
   font-size: 1rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Headings */
@@ -501,34 +503,19 @@ pre code {
   color: inherit;
 }
 
-/* Tables */
-/* .prose table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.5rem 0;
-  font-size: 0.875rem;
+/* Tables — horizontally scrollable wrapper for mobile */
+.prose .dds-table-wrapper {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.prose thead {
-  border-bottom: 2px solid var(--color-border);
+.prose > table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  min-width: 100%;
 }
-
-.prose th {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--color-foreground);
-  background-color: var(--color-surface);
-}
-
-.prose td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.prose tbody tr:hover {
-  background-color: var(--color-surface-hover);
-} */
 
 /* Images */
 .prose img {

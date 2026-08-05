@@ -166,7 +166,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
             {/* Entry details collapsible — visible below xl where right sidebar is hidden */}
             <CollapsibleSection
               title="Entry Details"
-              className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
+              className="xl:hidden px-4 sm:px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
             >
               <OnThisPage />
               <div className="my-4 border-t border-[var(--color-border)]" />
@@ -177,7 +177,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
               />
             </CollapsibleSection>
 
-          <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
+          <article className="mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32" style={{ maxWidth: '1000px' }}>
             <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
 
             <header className="mb-8">
