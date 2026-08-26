@@ -13,6 +13,7 @@ import { verifyToken, getAuthCookieName } from '@/lib/auth';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { EntryDocument } from '@/lib/db/models/Entry';
 import { upsertEntryVector, isPineconeConfigured } from '@/lib/pinecone';
+import { composeEntryMarkdown, uploadMarkdownToS3, isS3Configured } from '@/lib/s3';
 
 interface EntriesListResponse {
   entries: Omit<IEntry, 'body'>[];
@@ -367,6 +368,20 @@ export async function POST(
       } catch (pineconeError) {
         // Log error but don't fail the request - entry is saved
         console.error('Failed to sync entry to Pinecone:', pineconeError);
+      }
+    }
+
+    // Sync markdown to S3 if published and not private
+    if (
+      entry.status === 'published' &&
+      !entry.frontmatter.isPrivate &&
+      isS3Configured()
+    ) {
+      try {
+        const markdown = composeEntryMarkdown(entry.frontmatter.title, entry.body);
+        await uploadMarkdownToS3(entry.slug, markdown);
+      } catch (s3Error) {
+        console.error('Failed to sync entry markdown to S3:', s3Error);
       }
     }
 

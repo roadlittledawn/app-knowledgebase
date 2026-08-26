@@ -21,6 +21,7 @@ import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { OnThisPage } from '@/components/OnThisPage';
 import type { IEntry } from '@/types/entry';
 import type { ICategory } from '@/types/category';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,6 +97,36 @@ async function getRelatedEntries(ids: string[]): Promise<Omit<IEntry, 'body'>[]>
   }));
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  if (!slug || slug.length === 0) {
+    return {};
+  }
+
+  const entrySlug = slug[slug.length - 1]!;
+  const entry = await getEntryBySlug(entrySlug);
+
+  if (!entry) {
+    return {};
+  }
+
+  const authenticated = await isAuthenticated();
+  if (!authenticated && (entry.status !== 'published' || entry.frontmatter.isPrivate)) {
+    return {};
+  }
+
+  const metadata: Metadata = { title: entry.frontmatter.title };
+
+  if (entry.status === 'published' && !entry.frontmatter.isPrivate) {
+    metadata.alternates = {
+      types: { 'text/markdown': `/browse/${entrySlug}.md` },
+    };
+  }
+
+  return metadata;
+}
+
 export default async function EntryDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -136,6 +167,11 @@ export default async function EntryDetailPage({ params }: PageProps) {
     serializedMdx = null;
   }
 
+  const markdownUrl =
+    entry.status === 'published' && !entry.frontmatter.isPrivate
+      ? `/browse/${entry.slug}.md`
+      : undefined;
+
   const sidebarEntry: Omit<IEntry, 'body'> = {
     _id: entry._id,
     slug: entry.slug,
@@ -174,6 +210,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
                 entry={sidebarEntry}
                 relatedEntries={relatedEntries}
                 authenticated={authenticated}
+                markdownUrl={markdownUrl}
               />
             </CollapsibleSection>
 

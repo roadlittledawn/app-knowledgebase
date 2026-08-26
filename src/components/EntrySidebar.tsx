@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { IEntry } from '@/types/entry';
+import { CopyMarkdownButton } from '@/components/CopyMarkdownButton';
 
 const skillLevelLabels: Record<number, string> = {
   1: 'Beginner',
@@ -21,9 +22,15 @@ interface EntrySidebarProps {
   entry: Omit<IEntry, 'body'>;
   relatedEntries: Omit<IEntry, 'body'>[];
   authenticated: boolean;
+  markdownUrl?: string;
 }
 
-export function EntrySidebar({ entry, relatedEntries, authenticated }: EntrySidebarProps) {
+export function EntrySidebar({
+  entry,
+  relatedEntries,
+  authenticated,
+  markdownUrl,
+}: EntrySidebarProps) {
   const hasStatusBadges =
     entry.status === 'draft' || entry.frontmatter.isPrivate || entry.frontmatter.needsHelp;
 
@@ -38,6 +45,9 @@ export function EntrySidebar({ entry, relatedEntries, authenticated }: EntrySide
           Edit Entry
         </Link>
       )}
+
+      {/* View / Copy as Markdown */}
+      {markdownUrl && <CopyMarkdownButton markdownUrl={markdownUrl} />}
 
       {/* Status */}
       {hasStatusBadges && (

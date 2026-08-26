@@ -81,3 +81,26 @@ export async function deleteFromS3(s3Key: string): Promise<void> {
     console.error('Failed to delete S3 object:', s3Key, error);
   }
 }
+
+function markdownKey(slug: string): string {
+  return `markdown/${slug}.md`;
+}
+
+export function composeEntryMarkdown(title: string, body: string): string {
+  return `# ${title}\n\n${body}\n`;
+}
+
+export async function uploadMarkdownToS3(slug: string, markdown: string): Promise<void> {
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: getS3BucketName(),
+      Key: markdownKey(slug),
+      Body: markdown,
+      ContentType: 'text/markdown; charset=utf-8',
+    })
+  );
+}
+
+export async function deleteMarkdownFromS3(slug: string): Promise<void> {
+  await deleteFromS3(markdownKey(slug));
+}
