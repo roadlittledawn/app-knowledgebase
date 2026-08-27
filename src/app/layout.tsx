@@ -53,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-x-hidden antialiased`}
       // Suppress hydration warning since theme class is set by pre-paint script
       suppressHydrationWarning
     >
@@ -66,7 +66,7 @@ export default function RootLayout({
         */}
         <script dangerouslySetInnerHTML={{ __html: getThemeScript() }} />
       </head>
-      <body className="h-full flex flex-col bg-[var(--color-background)] text-[var(--color-foreground)]">
+      <body className="h-full flex flex-col overflow-x-hidden bg-[var(--color-background)] text-[var(--color-foreground)]">
         <ThemeProvider>
           <MobileNavProvider>
             <TopNav />

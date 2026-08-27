@@ -1,6 +1,7 @@
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { getS3Client, getS3BucketName, getS3PublicUrl } from './client';
+import { mdxToMarkdown } from '@/lib/mdx/mdx-to-markdown';
 
 function sanitizeFilename(filename: string): string {
   return filename.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase();
@@ -80,4 +81,37 @@ export async function deleteFromS3(s3Key: string): Promise<void> {
   } catch (error) {
     console.error('Failed to delete S3 object:', s3Key, error);
   }
+}
+
+function markdownKey(slug: string): string {
+  return `markdown/${slug}.md`;
+}
+
+export function composeEntryMarkdown(title: string, body: string): string {
+  return `# ${title}\n\n${mdxToMarkdown(body)}\n`;
+}
+
+export async function uploadMarkdownToS3(slug: string, markdown: string): Promise<void> {
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: getS3BucketName(),
+      Key: markdownKey(slug),
+      Body: markdown,
+      ContentType: 'text/markdown; charset=utf-8',
+    })
+  );
+}
+
+/**
+ * Unlike deleteFromS3, this does not swallow errors: callers (the entry
+ * publish/unpublish sync logic) need to know if a delete failed so a
+ * previously-public Markdown snapshot doesn't silently stay accessible.
+ */
+export async function deleteMarkdownFromS3(slug: string): Promise<void> {
+  await getS3Client().send(
+    new DeleteObjectCommand({
+      Bucket: getS3BucketName(),
+      Key: markdownKey(slug),
+    })
+  );
 }

@@ -31,6 +31,7 @@ export interface EntryDocument {
   frontmatter: EntryFrontmatterDocument;
   body: string;
   pineconeId?: string;
+  hasMarkdown?: boolean;
   sourceFile?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -151,6 +152,10 @@ const EntrySchema = new Schema<EntryDocument, EntryModel>(
     pineconeId: {
       type: String,
       sparse: true,
+    },
+    hasMarkdown: {
+      type: Boolean,
+      default: false,
     },
     sourceFile: {
       type: String,

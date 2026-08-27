@@ -14,6 +14,12 @@ import { verifyToken, getAuthCookieName } from '@/lib/auth';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { EntryDocument } from '@/lib/db/models/Entry';
 import { upsertEntryVector, deleteEntryVector, isPineconeConfigured } from '@/lib/pinecone';
+import {
+  composeEntryMarkdown,
+  uploadMarkdownToS3,
+  deleteMarkdownFromS3,
+  isS3Configured,
+} from '@/lib/s3';
 import mongoose from 'mongoose';
 
 interface GetEntryResponse {
@@ -68,6 +74,7 @@ function transformEntry(doc: EntryDocument): IEntry {
     },
     body: doc.body,
     pineconeId: doc.pineconeId,
+    hasMarkdown: doc.hasMarkdown,
     sourceFile: doc.sourceFile,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
@@ -166,6 +173,8 @@ export async function PUT(
     }
 
     const previousStatus = existingEntry.status;
+    const previousSlug = existingEntry.slug;
+    const previousIsPrivate = existingEntry.frontmatter.isPrivate;
 
     // Validate category if provided
     if (categoryId !== undefined) {
@@ -315,6 +324,35 @@ export async function PUT(
       }
     }
 
+    // Sync markdown to S3 based on published+public status changes
+    if (isS3Configured()) {
+      try {
+        const wasEligible = previousStatus === 'published' && !previousIsPrivate;
+        const isEligible =
+          existingEntry.status === 'published' && !existingEntry.frontmatter.isPrivate;
+        const slugChanged = previousSlug !== existingEntry.slug;
+
+        if (isEligible) {
+          if (wasEligible && slugChanged) {
+            await deleteMarkdownFromS3(previousSlug);
+          }
+          const markdown = composeEntryMarkdown(
+            existingEntry.frontmatter.title,
+            existingEntry.body
+          );
+          await uploadMarkdownToS3(existingEntry.slug, markdown);
+          existingEntry.hasMarkdown = true;
+          await existingEntry.save();
+        } else if (wasEligible) {
+          await deleteMarkdownFromS3(previousSlug);
+          existingEntry.hasMarkdown = false;
+          await existingEntry.save();
+        }
+      } catch (s3Error) {
+        console.error('Failed to sync entry markdown to S3:', s3Error);
+      }
+    }
+
     return NextResponse.json({ entry: transformEntry(existingEntry.toObject()) });
   } catch (error) {
     console.error('Error updating entry:', error);
@@ -361,6 +399,15 @@ export async function DELETE(
         await deleteEntryVector(entry._id.toString());
       } catch (pineconeError) {
         console.error('Failed to delete entry from Pinecone:', pineconeError);
+      }
+    }
+
+    // Delete markdown from S3 if it was published and not private
+    if (isS3Configured() && entry.status === 'published' && !entry.frontmatter.isPrivate) {
+      try {
+        await deleteMarkdownFromS3(entry.slug);
+      } catch (s3Error) {
+        console.error('Failed to delete entry markdown from S3:', s3Error);
       }
     }
 

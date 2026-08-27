@@ -36,6 +36,7 @@ export interface IEntry {
   frontmatter: EntryFrontmatter;
   body: string; // raw MDX (without frontmatter YAML)
   pineconeId?: string;
+  hasMarkdown?: boolean; // whether a Markdown snapshot exists at /browse/{slug}.md
   sourceFile?: string; // migration provenance
   createdAt: Date;
   updatedAt: Date;

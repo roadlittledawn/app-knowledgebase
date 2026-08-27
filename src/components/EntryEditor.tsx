@@ -20,7 +20,18 @@ import { ImagePickerPanel } from './ImagePickerPanel';
 import { FilePickerPanel } from './FilePickerPanel';
 import { CategorySelector } from './CategorySelector';
 import { useTheme } from './ThemeProvider';
-import { Pencil, Eye, ClipboardList, Images, Bot, Check, Loader2, Database, Paperclip } from 'lucide-react';
+import {
+  Pencil,
+  Eye,
+  ClipboardList,
+  Images,
+  Bot,
+  Check,
+  Loader2,
+  Database,
+  Paperclip,
+  ExternalLink,
+} from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface EntryEditorProps {
@@ -115,12 +126,13 @@ function EntryEditorInner({
     entry?.updatedAt ? new Date(entry.updatedAt) : null
   );
   const [pineconeIndexed, setPineconeIndexed] = useState<boolean>(!!entry?.pineconeId);
+  const [hasMarkdown, setHasMarkdown] = useState<boolean>(!!entry?.hasMarkdown);
   const saveSuccessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selection, setSelection] = useState<string | undefined>(undefined);
   const [leftView, setLeftView] = useState<LeftPanelView>('editor');
   const [rightView, setRightView] = useState<RightPanelView>('metadata');
 
-  // Sync lastSavedAt and pineconeIndexed when entry prop changes
+  // Sync lastSavedAt, pineconeIndexed, and hasMarkdown when entry prop changes
   useEffect(() => {
     if (entry?.updatedAt) {
       setLastSavedAt(new Date(entry.updatedAt));
@@ -128,7 +140,8 @@ function EntryEditorInner({
       setLastSavedAt(null);
     }
     setPineconeIndexed(!!entry?.pineconeId);
-  }, [entry?.updatedAt, entry?.pineconeId]);
+    setHasMarkdown(!!entry?.hasMarkdown);
+  }, [entry?.updatedAt, entry?.pineconeId, entry?.hasMarkdown]);
 
   // Cleanup save success timeout on unmount
   useEffect(() => {
@@ -188,6 +201,7 @@ function EntryEditorInner({
       setLastSavedAt(new Date());
       if (result) {
         setPineconeIndexed(!!result.pineconeId);
+        setHasMarkdown(!!result.hasMarkdown);
       }
       saveSuccessTimeout.current = setTimeout(() => {
         setSaveSuccess(false);
@@ -420,6 +434,12 @@ function EntryEditorInner({
                 updateFrontmatter={updateFrontmatter}
                 setCategoryId={setCategoryId}
                 onCategoryCreated={handleCategoryCreated}
+                entryId={entry?._id}
+                entrySlug={entry?.slug}
+                hasMarkdown={hasMarkdown}
+                onHasMarkdownChange={setHasMarkdown}
+                pineconeIndexed={pineconeIndexed}
+                onPineconeIndexedChange={setPineconeIndexed}
               />
             ) : rightView === 'images' ? (
               <ImagePickerPanel />
@@ -456,6 +476,12 @@ interface MetadataPanelProps {
   ) => void;
   setCategoryId: (id: string) => void;
   onCategoryCreated: (category: CategoryTreeNode & { parentId?: string | null }) => void;
+  entryId: string | undefined;
+  entrySlug: string | undefined;
+  hasMarkdown: boolean;
+  onHasMarkdownChange: (value: boolean) => void;
+  pineconeIndexed: boolean;
+  onPineconeIndexedChange: (value: boolean) => void;
 }
 
 function MetadataPanel({
@@ -470,6 +496,12 @@ function MetadataPanel({
   updateFrontmatter,
   setCategoryId,
   onCategoryCreated,
+  entryId,
+  entrySlug,
+  hasMarkdown,
+  onHasMarkdownChange,
+  pineconeIndexed,
+  onPineconeIndexedChange,
 }: MetadataPanelProps) {
   // Local text state for comma-separated inputs so users can type commas
   // without the trailing separator being stripped by filter(Boolean)
@@ -580,6 +612,56 @@ function MetadataPanel({
           onCreateCategory={handleCreateCategory}
         />
       </div>
+
+      {entryId && (
+        <div className="pt-3 border-t border-[var(--color-border)]">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-1">
+            Search &amp; Discovery
+          </h3>
+          <SyncStatusRow
+            label="Markdown export"
+            exists={hasMarkdown}
+            href={hasMarkdown && entrySlug ? `/browse/${entrySlug}.md` : undefined}
+            eligible={status === 'published' && !frontmatter.isPrivate}
+            ineligibleReason={
+              status !== 'published'
+                ? 'Publish the entry to enable'
+                : 'Private entries are not exported as Markdown'
+            }
+            onAdd={async () => {
+              const res = await fetch(`/api/entries/${entryId}/markdown`, { method: 'POST' });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Failed to generate Markdown');
+              onHasMarkdownChange(!!data.hasMarkdown);
+            }}
+            onRemove={async () => {
+              const res = await fetch(`/api/entries/${entryId}/markdown`, { method: 'DELETE' });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Failed to remove Markdown');
+              onHasMarkdownChange(!!data.hasMarkdown);
+            }}
+          />
+          <SyncStatusRow
+            label="Search index"
+            exists={pineconeIndexed}
+            eligible={status === 'published'}
+            ineligibleReason="Publish the entry to enable"
+            onAdd={async () => {
+              const res = await fetch(`/api/entries/${entryId}/pinecone`, { method: 'POST' });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Failed to index entry');
+              onPineconeIndexedChange(!!data.pineconeId);
+            }}
+            onRemove={async () => {
+              const res = await fetch(`/api/entries/${entryId}/pinecone`, { method: 'DELETE' });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Failed to remove from index');
+              onPineconeIndexedChange(!!data.pineconeId);
+            }}
+          />
+        </div>
+      )}
+
       <div>
         <label
           htmlFor="tags"
@@ -680,6 +762,92 @@ function MetadataPanel({
           <span className="text-sm text-[var(--color-foreground)]">Private</span>
         </label>
       </div>
+    </div>
+  );
+}
+
+interface SyncStatusRowProps {
+  label: string;
+  exists: boolean;
+  href?: string;
+  eligible: boolean;
+  ineligibleReason?: string;
+  onAdd: () => Promise<void>;
+  onRemove: () => Promise<void>;
+}
+
+function SyncStatusRow({
+  label,
+  exists,
+  href,
+  eligible,
+  ineligibleReason,
+  onAdd,
+  onRemove,
+}: SyncStatusRowProps) {
+  const [busy, setBusy] = useState(false);
+  const [rowError, setRowError] = useState<string | null>(null);
+
+  async function handleClick(action: () => Promise<void>) {
+    setBusy(true);
+    setRowError(null);
+    try {
+      await action();
+    } catch (err) {
+      setRowError(err instanceof Error ? err.message : 'Action failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="py-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-sm">
+          <span
+            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+              exists ? 'bg-[var(--color-success,#22c55e)]' : 'bg-[var(--color-foreground-muted)]'
+            }`}
+          />
+          <span className="text-[var(--color-foreground)]">{label}</span>
+          <span className="text-xs text-[var(--color-foreground-muted)]">
+            {exists ? '· available' : '· not generated'}
+          </span>
+          {href && (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View Markdown source"
+              className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] inline-flex items-center"
+            >
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
+        {exists ? (
+          <button
+            type="button"
+            onClick={() => handleClick(onRemove)}
+            disabled={busy}
+            title="Remove"
+            className="px-2 py-1 text-xs font-medium text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-md transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {busy ? '…' : 'Remove'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => handleClick(onAdd)}
+            disabled={busy || !eligible}
+            title={!eligible ? ineligibleReason : undefined}
+            className="px-2 py-1 text-xs font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-md transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {busy ? '…' : 'Add'}
+          </button>
+        )}
+      </div>
+      {rowError && <p className="text-xs text-[var(--color-error)] mt-1">{rowError}</p>}
     </div>
   );
 }

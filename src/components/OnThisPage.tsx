@@ -8,7 +8,12 @@ interface HeadingEntry {
   level: number;
 }
 
-export function OnThisPage() {
+interface OnThisPageProps {
+  /** Hide the internal "On this Page" heading when the container already provides one. */
+  showHeading?: boolean;
+}
+
+export function OnThisPage({ showHeading = true }: OnThisPageProps) {
   const [headings, setHeadings] = useState<HeadingEntry[]>([]);
 
   const scanHeadings = useCallback(() => {
@@ -74,9 +79,11 @@ export function OnThisPage() {
 
   return (
     <nav aria-label="On this page">
-      <h3 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-foreground-muted)] mb-3">
-        On this Page
-      </h3>
+      {showHeading && (
+        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-foreground-muted)] mb-3">
+          On this Page
+        </h3>
+      )}
       <div className="on-this-page-container relative">
         <ul
           className="on-this-page-list space-y-0.5 overflow-y-auto"

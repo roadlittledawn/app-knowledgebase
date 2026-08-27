@@ -13,7 +13,7 @@ export function ResizableLayout({ sidebar, children, rightSidebar }: ResizableLa
   return (
     <>
       {/* Desktop: resizable panels (lg+) */}
-      <div className="hidden lg:flex flex-1 min-h-0">
+      <div className="hidden lg:flex flex-1 min-w-0 min-h-0">
         <Group orientation="horizontal" id="nav-layout">
           <Panel
             id="nav-sidebar"
@@ -45,7 +45,7 @@ export function ResizableLayout({ sidebar, children, rightSidebar }: ResizableLa
       </div>
 
       {/* Mobile: stacked (below lg) */}
-      <div className="flex flex-col flex-1 min-h-0 lg:hidden">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 lg:hidden">
         {children}
       </div>
     </>
