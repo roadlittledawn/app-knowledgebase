@@ -130,7 +130,7 @@ export default function EditEntryPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="md:h-[calc(100vh-4rem)] flex flex-col">
       {/* Sub-header with back button and entry title */}
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-4 h-12 flex items-center gap-4">
