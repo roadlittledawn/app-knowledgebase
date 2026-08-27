@@ -1,6 +1,7 @@
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { getS3Client, getS3BucketName, getS3PublicUrl } from './client';
+import { mdxToMarkdown } from '@/lib/mdx/mdx-to-markdown';
 
 function sanitizeFilename(filename: string): string {
   return filename.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase();
@@ -87,7 +88,7 @@ function markdownKey(slug: string): string {
 }
 
 export function composeEntryMarkdown(title: string, body: string): string {
-  return `# ${title}\n\n${body}\n`;
+  return `# ${title}\n\n${mdxToMarkdown(body)}\n`;
 }
 
 export async function uploadMarkdownToS3(slug: string, markdown: string): Promise<void> {

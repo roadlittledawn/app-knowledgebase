@@ -74,6 +74,7 @@ function transformEntry(doc: EntryDocument): IEntry {
     },
     body: doc.body,
     pineconeId: doc.pineconeId,
+    hasMarkdown: doc.hasMarkdown,
     sourceFile: doc.sourceFile,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
@@ -340,8 +341,12 @@ export async function PUT(
             existingEntry.body
           );
           await uploadMarkdownToS3(existingEntry.slug, markdown);
+          existingEntry.hasMarkdown = true;
+          await existingEntry.save();
         } else if (wasEligible) {
           await deleteMarkdownFromS3(previousSlug);
+          existingEntry.hasMarkdown = false;
+          await existingEntry.save();
         }
       } catch (s3Error) {
         console.error('Failed to sync entry markdown to S3:', s3Error);

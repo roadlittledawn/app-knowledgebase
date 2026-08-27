@@ -114,6 +114,7 @@ function transformEntryForList(doc: EntryDocument): Omit<IEntry, 'body'> {
       relatedEntries: doc.frontmatter.relatedEntries.map((id) => id.toString()),
     },
     pineconeId: doc.pineconeId,
+    hasMarkdown: doc.hasMarkdown,
     sourceFile: doc.sourceFile,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
@@ -380,6 +381,8 @@ export async function POST(
       try {
         const markdown = composeEntryMarkdown(entry.frontmatter.title, entry.body);
         await uploadMarkdownToS3(entry.slug, markdown);
+        entry.hasMarkdown = true;
+        await entry.save();
       } catch (s3Error) {
         console.error('Failed to sync entry markdown to S3:', s3Error);
       }
