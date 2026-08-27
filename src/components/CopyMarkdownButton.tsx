@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check, ExternalLink, X } from 'lucide-react';
+import { Copy, Check, X } from 'lucide-react';
 
 interface CopyMarkdownButtonProps {
   markdownUrl: string;
@@ -28,27 +28,16 @@ export function CopyMarkdownButton({ markdownUrl }: CopyMarkdownButtonProps) {
   }
 
   return (
-    <div className="flex gap-2">
-      <a
-        href={markdownUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        title="View Markdown source"
-        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-[var(--color-border)] text-xs text-[var(--color-foreground-secondary)] hover:bg-[var(--color-surface)] transition-colors"
-      >
-        <ExternalLink size={12} />
-        View as Markdown
-      </a>
-      <button
-        onClick={handleCopy}
-        title="Copy as Markdown"
-        className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-[var(--color-border)] text-xs text-[var(--color-foreground-secondary)] hover:bg-[var(--color-surface)] transition-colors"
-      >
-        {status === 'copied' && <Check size={12} />}
-        {status === 'error' && <X size={12} />}
-        {status === 'idle' && <Copy size={12} />}
-        {status === 'copied' ? 'Copied' : status === 'error' ? 'Failed' : 'Copy'}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="Copy as Markdown"
+      className="inline-flex items-center gap-1.5 px-2 py-1 text-sm text-[var(--color-foreground-secondary)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] rounded-md transition-colors cursor-pointer"
+    >
+      {status === 'copied' && <Check className="w-3.5 h-3.5 text-[var(--color-success,#22c55e)]" />}
+      {status === 'error' && <X className="w-3.5 h-3.5 text-[var(--color-error)]" />}
+      {status === 'idle' && <Copy className="w-3.5 h-3.5" />}
+      {status === 'copied' ? 'Copied' : status === 'error' ? 'Failed' : 'Copy Markdown'}
+    </button>
   );
 }

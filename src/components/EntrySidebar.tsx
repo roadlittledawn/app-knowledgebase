@@ -1,54 +1,17 @@
 import Link from 'next/link';
 import type { IEntry } from '@/types/entry';
-import { CopyMarkdownButton } from '@/components/CopyMarkdownButton';
-
-const skillLevelLabels: Record<number, string> = {
-  1: 'Beginner',
-  2: 'Elementary',
-  3: 'Intermediate',
-  4: 'Advanced',
-  5: 'Expert',
-};
-
-const skillLevelColors: Record<number, string> = {
-  1: 'bg-green-500/10 text-green-500 border-green-500/20',
-  2: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  3: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-  4: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
-  5: 'bg-red-500/10 text-red-500 border-red-500/20',
-};
 
 interface EntrySidebarProps {
   entry: Omit<IEntry, 'body'>;
   relatedEntries: Omit<IEntry, 'body'>[];
-  authenticated: boolean;
 }
 
-export function EntrySidebar({ entry, relatedEntries, authenticated }: EntrySidebarProps) {
+export function EntrySidebar({ entry, relatedEntries }: EntrySidebarProps) {
   const hasStatusBadges =
     entry.status === 'draft' || entry.frontmatter.isPrivate || entry.frontmatter.needsHelp;
 
-  // Markdown snapshots only exist in S3 for published, non-private entries.
-  const markdownUrl =
-    entry.status === 'published' && !entry.frontmatter.isPrivate
-      ? `/browse/${entry.slug}.md`
-      : undefined;
-
   return (
     <div className="p-5 space-y-6 text-sm">
-      {/* Edit button */}
-      {authenticated && (
-        <Link
-          href={`/entries/${entry._id}/edit`}
-          className="block w-full text-center px-3 py-2 rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] transition-colors font-medium"
-        >
-          Edit Entry
-        </Link>
-      )}
-
-      {/* View / Copy as Markdown */}
-      {markdownUrl && <CopyMarkdownButton markdownUrl={markdownUrl} />}
-
       {/* Status */}
       {hasStatusBadges && (
         <div>
@@ -71,37 +34,6 @@ export function EntrySidebar({ entry, relatedEntries, authenticated }: EntrySide
                 Needs Help
               </span>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Skill Level */}
-      <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
-          Skill Level
-        </h3>
-        <span
-          className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full border ${skillLevelColors[entry.frontmatter.skillLevel]}`}
-        >
-          {skillLevelLabels[entry.frontmatter.skillLevel]}
-        </span>
-      </div>
-
-      {/* Tags */}
-      {entry.frontmatter.tags.length > 0 && (
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-muted)] mb-2">
-            Tags
-          </h3>
-          <div className="flex flex-wrap gap-1.5">
-            {entry.frontmatter.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-0.5 text-xs rounded-md bg-[var(--color-surface)] text-[var(--color-foreground-muted)] border border-[var(--color-border)]"
-              >
-                {tag}
-              </span>
-            ))}
           </div>
         </div>
       )}
