@@ -13,7 +13,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
-import { MonacoPane } from './MonacoPane';
+import { MonacoPane, isIOSDevice, type MonacoPaneHandle } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { ImagePickerPanel } from './ImagePickerPanel';
@@ -31,6 +31,7 @@ import {
   Database,
   Paperclip,
   ExternalLink,
+  Clipboard,
 } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
@@ -131,6 +132,9 @@ function EntryEditorInner({
   const [selection, setSelection] = useState<string | undefined>(undefined);
   const [leftView, setLeftView] = useState<LeftPanelView>('editor');
   const [rightView, setRightView] = useState<RightPanelView>('metadata');
+  const monacoRef = useRef<MonacoPaneHandle>(null);
+  const isIOS = useMemo(() => isIOSDevice(), []);
+  const [pasteLabel, setPasteLabel] = useState('Paste');
 
   // Sync lastSavedAt, pineconeIndexed, and hasMarkdown when entry prop changes
   useEffect(() => {
@@ -235,6 +239,13 @@ function EntryEditorInner({
 
   const handleSelectionChange = useCallback((selectedText: string | undefined) => {
     setSelection(selectedText);
+  }, []);
+
+  const handleIOSPaste = useCallback(async () => {
+    const result = await monacoRef.current?.pasteFromClipboard();
+    if (result === 'pasted') return;
+    setPasteLabel(result === 'empty' ? 'Nothing to paste' : 'Paste unavailable');
+    setTimeout(() => setPasteLabel('Paste'), 2000);
   }, []);
 
   const handleApplyAIContent = useCallback(
@@ -350,6 +361,16 @@ function EntryEditorInner({
                 <Eye className="w-4 h-4" /> Preview
               </button>
             </div>
+
+            {isIOS && leftView === 'editor' && (
+              <button
+                onClick={handleIOSPaste}
+                className="px-2.5 py-1 text-xs font-medium rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground-secondary)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <Clipboard className="w-3.5 h-3.5" />
+                {pasteLabel}
+              </button>
+            )}
           </div>
 
           {/* Left Column Content */}
@@ -357,6 +378,7 @@ function EntryEditorInner({
             {leftView === 'editor' ? (
               <div className="h-full">
                 <MonacoPane
+                  ref={monacoRef}
                   value={body}
                   onChange={setBody}
                   theme={theme}

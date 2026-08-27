@@ -10,7 +10,7 @@
  * - 8.12: Support text selection tracking for AI writing assistance
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import type { Theme } from '@/lib/theme';
 import type { editor, IRange } from 'monaco-editor';
@@ -33,6 +33,12 @@ interface MonacoPaneProps {
   onSelectionChange?: (selectedText: string | undefined) => void;
 }
 
+export type IOSPasteResult = 'pasted' | 'empty' | 'denied';
+
+export interface MonacoPaneHandle {
+  pasteFromClipboard: () => Promise<IOSPasteResult>;
+}
+
 /**
  * Map app theme to Monaco theme (Requirement 6.10)
  * - dark mode uses 'vs-dark'
@@ -44,9 +50,10 @@ function getMonacoTheme(appTheme: Theme): string {
 
 /**
  * Detect iOS/iPadOS (including iPadOS “desktop mode”).
- * Used to disable Monaco’s custom context menu so the native iOS paste menu works reliably.
+ * Used to disable Monaco’s custom context menu so the native iOS paste menu works reliably,
+ * and to decide whether the caller should render a manual paste control.
  */
-function isIOSDevice(): boolean {
+export function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') {
     return false;
   }
@@ -58,21 +65,12 @@ function isIOSDevice(): boolean {
   return isIPhoneOrIPad || isIPadDesktopMode;
 }
 
-export function MonacoPane({
-  value,
-  onChange,
-  theme,
-  language = 'mdx',
-  onSelectionChange,
-}: MonacoPaneProps) {
+export const MonacoPane = forwardRef<MonacoPaneHandle, MonacoPaneProps>(function MonacoPane(
+  { value, onChange, theme, language = 'mdx', onSelectionChange },
+  ref
+) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  const isIOS = useMemo(() => isIOSDevice(), []);
-  const [pasteLabel, setPasteLabel] = useState('Paste');
-
-  const flashPasteLabel = useCallback((label: string) => {
-    setPasteLabel(label);
-    setTimeout(() => setPasteLabel('Paste'), 2000);
-  }, []);
+  const isIOS = isIOSDevice();
 
   const handleChange = (newValue: string | undefined) => {
     onChange(newValue ?? '');
@@ -109,16 +107,19 @@ export function MonacoPane({
    * bridges that gap: it reads the clipboard via the Clipboard API (which iOS
    * honours when invoked from a direct user gesture such as a button tap) and
    * inserts the text at the current cursor position / selection.
+   *
+   * Exposed via ref (rather than rendering the trigger button here) so the
+   * paste control can live outside the editor surface, where it doesn't
+   * overlap the document content.
    */
-  const handleIOSPaste = useCallback(async () => {
+  const pasteFromClipboard = useCallback(async (): Promise<IOSPasteResult> => {
     const editorInstance = editorRef.current;
-    if (!editorInstance) return;
+    if (!editorInstance) return 'denied';
 
     try {
       const text = await navigator.clipboard.readText();
       if (!text) {
-        flashPasteLabel('Nothing to paste');
-        return;
+        return 'empty';
       }
 
       const selection = editorInstance.getSelection();
@@ -140,11 +141,14 @@ export function MonacoPane({
 
       editorInstance.executeEdits('ios-paste', [{ range, text }]);
       editorInstance.focus();
+      return 'pasted';
     } catch {
       // Clipboard access denied or API unavailable.
-      flashPasteLabel('Paste unavailable');
+      return 'denied';
     }
-  }, [flashPasteLabel]);
+  }, []);
+
+  useImperativeHandle(ref, () => ({ pasteFromClipboard }), [pasteFromClipboard]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -166,32 +170,11 @@ export function MonacoPane({
           padding: { top: 16, bottom: 16 },
           // Disable Monaco's custom context menu on iOS: it captures long-press
           // events but clipboard insertion never fires, leaving paste broken.
-          // The iOS paste button below provides clipboard paste instead.
+          // The external iOS paste control (rendered by the parent) provides
+          // clipboard paste instead.
           contextmenu: !isIOS,
         }}
       />
-      {isIOS && (
-        <button
-          onClick={handleIOSPaste}
-          aria-label="Paste from clipboard"
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            zIndex: 10,
-            padding: '4px 10px',
-            fontSize: 13,
-            borderRadius: 6,
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-surface)',
-            color: 'var(--color-foreground)',
-            cursor: 'pointer',
-            opacity: 0.85,
-          }}
-        >
-          {pasteLabel}
-        </button>
-      )}
     </div>
   );
-}
+});
