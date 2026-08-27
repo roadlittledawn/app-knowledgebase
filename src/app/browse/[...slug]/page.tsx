@@ -9,10 +9,10 @@ import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
 import { verifyToken, getAuthCookieName } from '@/lib/auth';
-import { getCategoryPathArray, getCategoryTreeWithEntries } from '@/lib/db/queries/categories';
+import { getCategoryTreeWithEntries } from '@/lib/db/queries/categories';
 import { serializeMDX } from '@/lib/mdx/serialize';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { EntrySidebar } from '@/components/EntrySidebar';
+import { EntryPageTools } from '@/components/EntryPageTools';
 import { FileExplorerNav } from '@/components/FileExplorerNav';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { MDXContent } from '@/components/mdx/MDXContent';
@@ -20,7 +20,7 @@ import { MobileDrawer } from '@/components/MobileDrawer';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { OnThisPage } from '@/components/OnThisPage';
 import type { IEntry } from '@/types/entry';
-import type { ICategory } from '@/types/category';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,6 +59,7 @@ async function getEntryBySlug(slug: string): Promise<IEntry | null> {
     },
     body: entry.body,
     pineconeId: entry.pineconeId,
+    hasMarkdown: entry.hasMarkdown,
     sourceFile: entry.sourceFile,
     createdAt: entry.createdAt,
     updatedAt: entry.updatedAt,
@@ -96,6 +97,36 @@ async function getRelatedEntries(ids: string[]): Promise<Omit<IEntry, 'body'>[]>
   }));
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  if (!slug || slug.length === 0) {
+    return {};
+  }
+
+  const entrySlug = slug[slug.length - 1]!;
+  const entry = await getEntryBySlug(entrySlug);
+
+  if (!entry) {
+    return {};
+  }
+
+  const authenticated = await isAuthenticated();
+  if (!authenticated && (entry.status !== 'published' || entry.frontmatter.isPrivate)) {
+    return {};
+  }
+
+  const metadata: Metadata = { title: entry.frontmatter.title };
+
+  if (entry.hasMarkdown) {
+    metadata.alternates = {
+      types: { 'text/markdown': `/browse/${entrySlug}.md` },
+    };
+  }
+
+  return metadata;
+}
+
 export default async function EntryDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -118,13 +149,6 @@ export default async function EntryDetailPage({ params }: PageProps) {
     }
   }
 
-  let categoryPath: ICategory[] = [];
-  try {
-    categoryPath = await getCategoryPathArray(entry.categoryId);
-  } catch {
-    // Category might not exist
-  }
-
   const categoryTree = await getCategoryTreeWithEntries(authenticated);
   const relatedEntries = await getRelatedEntries(entry.frontmatter.relatedEntries);
 
@@ -136,6 +160,8 @@ export default async function EntryDetailPage({ params }: PageProps) {
     serializedMdx = null;
   }
 
+  const markdownUrl = entry.hasMarkdown ? `/browse/${entry.slug}.md` : undefined;
+
   const sidebarEntry: Omit<IEntry, 'body'> = {
     _id: entry._id,
     slug: entry.slug,
@@ -143,6 +169,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
     status: entry.status,
     frontmatter: entry.frontmatter,
     pineconeId: entry.pineconeId,
+    hasMarkdown: entry.hasMarkdown,
     sourceFile: entry.sourceFile,
     createdAt: entry.createdAt,
     updatedAt: entry.updatedAt,
@@ -162,29 +189,38 @@ export default async function EntryDetailPage({ params }: PageProps) {
         sidebar={<FileExplorerNav tree={categoryTree} activeEntrySlug={entry.slug} />}
       >
         <div className="flex h-full min-h-0">
-          <main id="entry-scroll-area" className="flex-1 min-w-0 h-full overflow-y-auto">
-            {/* Entry details collapsible — visible below xl where right sidebar is hidden */}
+          <main
+            id="entry-scroll-area"
+            className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden"
+          >
+            {/* On This Page collapsible — visible below xl where right sidebar is hidden */}
             <CollapsibleSection
-              title="Entry Details"
-              className="xl:hidden px-6 pt-4 pb-2 border-b border-[var(--color-border)]"
+              title="On This Page"
+              className="xl:hidden px-6 py-5 border-b border-[var(--color-border)]"
             >
-              <OnThisPage />
-              <div className="my-4 border-t border-[var(--color-border)]" />
-              <EntrySidebar
-                entry={sidebarEntry}
-                relatedEntries={relatedEntries}
-                authenticated={authenticated}
-              />
+              <OnThisPage showHeading={false} />
             </CollapsibleSection>
 
           <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
-            <Breadcrumbs categoryPath={categoryPath} entryTitle={entry.frontmatter.title} />
-
-            <header className="mb-8">
+            <header className="mb-6">
               <h1 className="text-3xl font-bold text-[var(--color-foreground)]">
                 {entry.frontmatter.title}
               </h1>
+              <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
+                Updated{' '}
+                {new Date(entry.updatedAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </p>
             </header>
+
+            <EntryPageTools
+              markdownUrl={markdownUrl}
+              entryId={entry._id}
+              authenticated={authenticated}
+            />
 
             <div className="prose max-w-none mb-12">
               {serializedMdx ? (
@@ -212,11 +248,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
             <div className="p-5 pb-4 border-b border-[var(--color-border)]">
               <OnThisPage />
             </div>
-            <EntrySidebar
-              entry={sidebarEntry}
-              relatedEntries={relatedEntries}
-              authenticated={authenticated}
-            />
+            <EntrySidebar entry={sidebarEntry} relatedEntries={relatedEntries} />
           </aside>
         </div>
       </ResizableLayout>
