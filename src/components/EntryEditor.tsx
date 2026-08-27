@@ -268,7 +268,7 @@ function EntryEditorInner({
   );
 
   return (
-    <div className="h-full flex flex-col bg-[var(--color-background)]">
+    <div className="md:h-full flex flex-col bg-[var(--color-background)]">
       {/* Top Bar */}
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-4 py-3 flex items-center justify-end gap-2">
@@ -334,9 +334,10 @@ function EntryEditorInner({
       </div>
 
       {/* Main Content - Two Column Layout */}
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-        {/* Left Column: Editor/Preview (2/3 on md+) */}
-        <div className="flex-1 md:w-2/3 min-h-0 flex flex-col border-b md:border-b-0 md:border-r border-[var(--color-border)]">
+      <div className="md:flex-1 min-h-0 flex flex-col md:flex-row">
+        {/* Left Column: Editor/Preview (2/3 on md+, bounded height on mobile so
+            Monaco scrolls internally instead of consuming the whole page) */}
+        <div className="h-[50vh] md:h-auto md:flex-1 md:w-2/3 min-h-0 flex flex-col border-b md:border-b-0 md:border-r border-[var(--color-border)]">
           {/* Left Column Header with Toggle */}
           <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
             <div className="flex items-center gap-1">
@@ -393,8 +394,9 @@ function EntryEditorInner({
           </div>
         </div>
 
-        {/* Right Column: Metadata/AI (1/3 on md+) */}
-        <div className="h-80 md:h-auto flex-shrink-0 md:flex-none md:w-1/3 min-h-0 flex flex-col overflow-hidden bg-[var(--color-background-secondary)]">
+        {/* Right Column: Metadata/AI (1/3 on md+; taller on mobile so tabs get
+            room to breathe instead of a cramped fixed box) */}
+        <div className="h-[60vh] md:h-auto flex-shrink-0 md:flex-none md:w-1/3 min-h-0 flex flex-col overflow-hidden bg-[var(--color-background-secondary)]">
           {/* Right Column Header with Toggle */}
           <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
             <div className="flex items-center gap-1">
