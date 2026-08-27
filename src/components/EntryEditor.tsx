@@ -13,7 +13,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
-import { MonacoPane } from './MonacoPane';
+import { MonacoPane, isIOSDevice, type MonacoPaneHandle } from './MonacoPane';
 import { PreviewPane } from './PreviewPane';
 import { AIWritingPanel } from './AIWritingPanel';
 import { ImagePickerPanel } from './ImagePickerPanel';
@@ -31,6 +31,7 @@ import {
   Database,
   Paperclip,
   ExternalLink,
+  Clipboard,
 } from 'lucide-react';
 import { ErrorBoundary } from './ErrorBoundary';
 
@@ -131,6 +132,9 @@ function EntryEditorInner({
   const [selection, setSelection] = useState<string | undefined>(undefined);
   const [leftView, setLeftView] = useState<LeftPanelView>('editor');
   const [rightView, setRightView] = useState<RightPanelView>('metadata');
+  const monacoRef = useRef<MonacoPaneHandle>(null);
+  const isIOS = useMemo(() => isIOSDevice(), []);
+  const [pasteLabel, setPasteLabel] = useState('Paste');
 
   // Sync lastSavedAt, pineconeIndexed, and hasMarkdown when entry prop changes
   useEffect(() => {
@@ -237,6 +241,13 @@ function EntryEditorInner({
     setSelection(selectedText);
   }, []);
 
+  const handleIOSPaste = useCallback(async () => {
+    const result = await monacoRef.current?.pasteFromClipboard();
+    if (result === 'pasted') return;
+    setPasteLabel(result === 'empty' ? 'Nothing to paste' : 'Paste unavailable');
+    setTimeout(() => setPasteLabel('Paste'), 2000);
+  }, []);
+
   const handleApplyAIContent = useCallback(
     (content: string, replace = false) => {
       if (selection) {
@@ -257,7 +268,7 @@ function EntryEditorInner({
   );
 
   return (
-    <div className="h-full flex flex-col bg-[var(--color-background)]">
+    <div className="md:h-full flex flex-col bg-[var(--color-background)]">
       {/* Top Bar */}
       <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-4 py-3 flex items-center justify-end gap-2">
@@ -323,9 +334,10 @@ function EntryEditorInner({
       </div>
 
       {/* Main Content - Two Column Layout */}
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-        {/* Left Column: Editor/Preview (2/3 on md+) */}
-        <div className="flex-1 md:w-2/3 min-h-0 flex flex-col border-b md:border-b-0 md:border-r border-[var(--color-border)]">
+      <div className="md:flex-1 min-h-0 flex flex-col md:flex-row">
+        {/* Left Column: Editor/Preview (2/3 on md+, bounded height on mobile so
+            Monaco scrolls internally instead of consuming the whole page) */}
+        <div className="h-[50vh] md:h-auto md:flex-1 md:w-2/3 min-h-0 flex flex-col border-b md:border-b-0 md:border-r border-[var(--color-border)]">
           {/* Left Column Header with Toggle */}
           <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
             <div className="flex items-center gap-1">
@@ -350,6 +362,16 @@ function EntryEditorInner({
                 <Eye className="w-4 h-4" /> Preview
               </button>
             </div>
+
+            {isIOS && leftView === 'editor' && (
+              <button
+                onClick={handleIOSPaste}
+                className="px-2.5 py-1 text-xs font-medium rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground-secondary)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <Clipboard className="w-3.5 h-3.5" />
+                {pasteLabel}
+              </button>
+            )}
           </div>
 
           {/* Left Column Content */}
@@ -357,6 +379,7 @@ function EntryEditorInner({
             {leftView === 'editor' ? (
               <div className="h-full">
                 <MonacoPane
+                  ref={monacoRef}
                   value={body}
                   onChange={setBody}
                   theme={theme}
@@ -371,8 +394,9 @@ function EntryEditorInner({
           </div>
         </div>
 
-        {/* Right Column: Metadata/AI (1/3 on md+) */}
-        <div className="h-80 md:h-auto flex-shrink-0 md:flex-none md:w-1/3 min-h-0 flex flex-col overflow-hidden bg-[var(--color-background-secondary)]">
+        {/* Right Column: Metadata/AI (1/3 on md+; taller on mobile so tabs get
+            room to breathe instead of a cramped fixed box) */}
+        <div className="h-[60vh] md:h-auto flex-shrink-0 md:flex-none md:w-1/3 min-h-0 flex flex-col overflow-hidden bg-[var(--color-background-secondary)]">
           {/* Right Column Header with Toggle */}
           <div className="flex-shrink-0 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between">
             <div className="flex items-center gap-1">
