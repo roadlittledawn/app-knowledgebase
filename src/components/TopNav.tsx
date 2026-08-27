@@ -12,7 +12,17 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, MoreVertical } from 'lucide-react';
+import {
+  Menu,
+  MoreVertical,
+  BookOpen,
+  MessageSquare,
+  Images,
+  Paperclip,
+  Settings,
+  FilePlus2,
+  Search,
+} from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
 import { useMobileNav } from './MobileNavContext';
@@ -106,21 +116,38 @@ export function TopNav({ className = '' }: TopNavProps) {
           {/* Desktop right group: nav + new entry + theme */}
           <div className="hidden lg:flex items-center gap-4">
             <nav className="flex items-center gap-4">
-              <Link href="/browse" className={linkClasses('/browse')}>
+              <Link href="/browse" className={`inline-flex items-center gap-1.5 ${linkClasses('/browse')}`}>
+                <BookOpen className="w-4 h-4" />
                 Browse
               </Link>
               {!isLoading && isAuthenticated && (
                 <>
-                  <Link href="/chat" className={linkClasses('/chat')}>
+                  <Link
+                    href="/chat"
+                    className={`inline-flex items-center gap-1.5 ${linkClasses('/chat')}`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
                     Chat
                   </Link>
-                  <Link href="/admin/images" className={linkClasses('/admin/images')}>
+                  <Link
+                    href="/admin/images"
+                    className={`inline-flex items-center gap-1.5 ${linkClasses('/admin/images')}`}
+                  >
+                    <Images className="w-4 h-4" />
                     Images
                   </Link>
-                  <Link href="/admin/files" className={linkClasses('/admin/files')}>
+                  <Link
+                    href="/admin/files"
+                    className={`inline-flex items-center gap-1.5 ${linkClasses('/admin/files')}`}
+                  >
+                    <Paperclip className="w-4 h-4" />
                     Files
                   </Link>
-                  <Link href="/admin" className={linkClasses('/admin')}>
+                  <Link
+                    href="/admin"
+                    className={`inline-flex items-center gap-1.5 ${linkClasses('/admin')}`}
+                  >
+                    <Settings className="w-4 h-4" />
                     Admin
                   </Link>
                 </>
@@ -130,8 +157,9 @@ export function TopNav({ className = '' }: TopNavProps) {
             {!isLoading && isAuthenticated && (
               <Link
                 href="/entries/new"
-                className="px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] transition-colors"
               >
+                <FilePlus2 className="w-4 h-4" />
                 New Entry
               </Link>
             )}
@@ -159,53 +187,60 @@ export function TopNav({ className = '' }: TopNavProps) {
               <div className="absolute right-0 top-full mt-1 w-44 z-50 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg py-1">
                 <Link
                   href="/search"
-                  className={`block px-4 py-2 text-sm ${linkClasses('/search')}`}
+                  className={`flex items-center gap-1.5 px-4 py-2 ${linkClasses('/search')}`}
                   onClick={() => setDropdownOpen(false)}
                 >
+                  <Search className="w-4 h-4" />
                   Search
                 </Link>
                 <Link
                   href="/browse"
-                  className={`block px-4 py-2 text-sm ${linkClasses('/browse')}`}
+                  className={`flex items-center gap-1.5 px-4 py-2 ${linkClasses('/browse')}`}
                   onClick={() => setDropdownOpen(false)}
                 >
+                  <BookOpen className="w-4 h-4" />
                   Browse
                 </Link>
                 {!isLoading && isAuthenticated && (
                   <>
                     <Link
                       href="/chat"
-                      className={`block px-4 py-2 text-sm ${linkClasses('/chat')}`}
+                      className={`flex items-center gap-1.5 px-4 py-2 ${linkClasses('/chat')}`}
                       onClick={() => setDropdownOpen(false)}
                     >
+                      <MessageSquare className="w-4 h-4" />
                       Chat
                     </Link>
                     <Link
                       href="/admin/images"
-                      className={`block px-4 py-2 text-sm ${linkClasses('/admin/images')}`}
+                      className={`flex items-center gap-1.5 px-4 py-2 ${linkClasses('/admin/images')}`}
                       onClick={() => setDropdownOpen(false)}
                     >
+                      <Images className="w-4 h-4" />
                       Images
                     </Link>
                     <Link
                       href="/admin/files"
-                      className={`block px-4 py-2 text-sm ${linkClasses('/admin/files')}`}
+                      className={`flex items-center gap-1.5 px-4 py-2 ${linkClasses('/admin/files')}`}
                       onClick={() => setDropdownOpen(false)}
                     >
+                      <Paperclip className="w-4 h-4" />
                       Files
                     </Link>
                     <Link
                       href="/admin"
-                      className={`block px-4 py-2 text-sm ${linkClasses('/admin')}`}
+                      className={`flex items-center gap-1.5 px-4 py-2 ${linkClasses('/admin')}`}
                       onClick={() => setDropdownOpen(false)}
                     >
+                      <Settings className="w-4 h-4" />
                       Admin
                     </Link>
                     <Link
                       href="/entries/new"
-                      className="block px-4 py-2 text-sm text-[var(--color-foreground-secondary)] hover:text-[var(--color-foreground)]"
+                      className="flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--color-foreground-secondary)] hover:text-[var(--color-foreground)]"
                       onClick={() => setDropdownOpen(false)}
                     >
+                      <FilePlus2 className="w-4 h-4" />
                       New Entry
                     </Link>
                   </>
