@@ -59,6 +59,7 @@ async function getEntryBySlug(slug: string): Promise<IEntry | null> {
     },
     body: entry.body,
     pineconeId: entry.pineconeId,
+    hasMarkdown: entry.hasMarkdown,
     sourceFile: entry.sourceFile,
     createdAt: entry.createdAt,
     updatedAt: entry.updatedAt,
@@ -117,7 +118,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const metadata: Metadata = { title: entry.frontmatter.title };
 
-  if (entry.status === 'published' && !entry.frontmatter.isPrivate) {
+  if (entry.hasMarkdown) {
     metadata.alternates = {
       types: { 'text/markdown': `/browse/${entrySlug}.md` },
     };
@@ -159,10 +160,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
     serializedMdx = null;
   }
 
-  const markdownUrl =
-    entry.status === 'published' && !entry.frontmatter.isPrivate
-      ? `/browse/${entry.slug}.md`
-      : undefined;
+  const markdownUrl = entry.hasMarkdown ? `/browse/${entry.slug}.md` : undefined;
 
   const sidebarEntry: Omit<IEntry, 'body'> = {
     _id: entry._id,
@@ -171,6 +169,7 @@ export default async function EntryDetailPage({ params }: PageProps) {
     status: entry.status,
     frontmatter: entry.frontmatter,
     pineconeId: entry.pineconeId,
+    hasMarkdown: entry.hasMarkdown,
     sourceFile: entry.sourceFile,
     createdAt: entry.createdAt,
     updatedAt: entry.updatedAt,
