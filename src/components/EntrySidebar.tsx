@@ -114,18 +114,6 @@ export function EntrySidebar({ entry, relatedEntries }: EntrySidebarProps) {
           </ul>
         </div>
       )}
-
-      {/* Last Updated */}
-      <div className="pt-4 border-t border-[var(--color-border)]">
-        <p className="text-xs text-[var(--color-foreground-muted)]">
-          Updated{' '}
-          {new Date(entry.updatedAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </p>
-      </div>
     </div>
   );
 }

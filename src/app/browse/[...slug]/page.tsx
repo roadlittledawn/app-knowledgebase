@@ -190,7 +190,10 @@ export default async function EntryDetailPage({ params }: PageProps) {
         sidebar={<FileExplorerNav tree={categoryTree} activeEntrySlug={entry.slug} />}
       >
         <div className="flex h-full min-h-0">
-          <main id="entry-scroll-area" className="flex-1 min-w-0 h-full overflow-y-auto">
+          <main
+            id="entry-scroll-area"
+            className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden"
+          >
             {/* On This Page collapsible — visible below xl where right sidebar is hidden */}
             <CollapsibleSection
               title="On This Page"
@@ -204,6 +207,14 @@ export default async function EntryDetailPage({ params }: PageProps) {
               <h1 className="text-3xl font-bold text-[var(--color-foreground)]">
                 {entry.frontmatter.title}
               </h1>
+              <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
+                Updated{' '}
+                {new Date(entry.updatedAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </p>
             </header>
 
             <EntryPageTools

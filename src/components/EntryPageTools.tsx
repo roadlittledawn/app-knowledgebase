@@ -13,6 +13,19 @@ export function EntryPageTools({ markdownUrl, entryId, authenticated }: EntryPag
 
   return (
     <div className="flex flex-wrap items-center gap-x-1 gap-y-2 mt-4 mb-8 pb-4 border-b border-[var(--color-border)]">
+      {authenticated && (
+        <>
+          <Link
+            href={`/entries/${entryId}/edit`}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:order-last sm:ml-auto text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 rounded-md transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </Link>
+          {/* Forces View/Copy onto their own line below Edit on mobile only */}
+          <div className="basis-full sm:hidden" aria-hidden="true" />
+        </>
+      )}
       {markdownUrl && (
         <>
           <a
@@ -27,15 +40,6 @@ export function EntryPageTools({ markdownUrl, entryId, authenticated }: EntryPag
           <span className="w-px h-4 bg-[var(--color-border)]" aria-hidden="true" />
           <CopyMarkdownButton markdownUrl={markdownUrl} />
         </>
-      )}
-      {authenticated && (
-        <Link
-          href={`/entries/${entryId}/edit`}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 ml-auto text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 rounded-md transition-colors"
-        >
-          <Pencil className="w-3.5 h-3.5" />
-          Edit
-        </Link>
       )}
     </div>
   );
