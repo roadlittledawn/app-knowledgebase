@@ -178,10 +178,11 @@ export function FileGallery({ refreshTrigger, onSelectFile }: FileGalleryProps) 
           style={{
             border: '1px solid var(--color-border)',
             borderRadius: '8px',
-            overflow: 'hidden',
+            overflowX: 'auto',
+            overflowY: 'hidden',
           }}
         >
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--color-background)' }}>
                 <th style={thStyle} />

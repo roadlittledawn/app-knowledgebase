@@ -258,7 +258,7 @@ function CategoryNode({
           type="button"
           {...attributes}
           {...listeners}
-          className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity touch-none"
+          className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] cursor-grab active:cursor-grabbing opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Drag to reorder"
           aria-label={`Drag to reorder ${node.name}`}
         >
@@ -347,7 +347,7 @@ function CategoryNode({
           </div>
         ) : (
           <>
-            <span className="flex-1 text-[var(--color-foreground)]">{node.name}</span>
+            <span className="flex-1 truncate text-[var(--color-foreground)]">{node.name}</span>
 
             {/* Entry count badge */}
             {node.entryCount > 0 && (
@@ -356,8 +356,8 @@ function CategoryNode({
               </span>
             )}
 
-            {/* Action buttons */}
-            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity">
+            {/* Action buttons — always visible on touch/mobile (no hover state to reveal them), hover-reveal on sm+ */}
+            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-0.5 transition-opacity">
               {/* Add child */}
               <button
                 type="button"
