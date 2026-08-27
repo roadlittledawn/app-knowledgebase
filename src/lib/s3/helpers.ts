@@ -101,6 +101,16 @@ export async function uploadMarkdownToS3(slug: string, markdown: string): Promis
   );
 }
 
+/**
+ * Unlike deleteFromS3, this does not swallow errors: callers (the entry
+ * publish/unpublish sync logic) need to know if a delete failed so a
+ * previously-public Markdown snapshot doesn't silently stay accessible.
+ */
 export async function deleteMarkdownFromS3(slug: string): Promise<void> {
-  await deleteFromS3(markdownKey(slug));
+  await getS3Client().send(
+    new DeleteObjectCommand({
+      Bucket: getS3BucketName(),
+      Key: markdownKey(slug),
+    })
+  );
 }

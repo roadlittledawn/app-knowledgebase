@@ -167,11 +167,6 @@ export default async function EntryDetailPage({ params }: PageProps) {
     serializedMdx = null;
   }
 
-  const markdownUrl =
-    entry.status === 'published' && !entry.frontmatter.isPrivate
-      ? `/browse/${entry.slug}.md`
-      : undefined;
-
   const sidebarEntry: Omit<IEntry, 'body'> = {
     _id: entry._id,
     slug: entry.slug,
@@ -210,7 +205,6 @@ export default async function EntryDetailPage({ params }: PageProps) {
                 entry={sidebarEntry}
                 relatedEntries={relatedEntries}
                 authenticated={authenticated}
-                markdownUrl={markdownUrl}
               />
             </CollapsibleSection>
 

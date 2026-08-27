@@ -22,17 +22,17 @@ interface EntrySidebarProps {
   entry: Omit<IEntry, 'body'>;
   relatedEntries: Omit<IEntry, 'body'>[];
   authenticated: boolean;
-  markdownUrl?: string;
 }
 
-export function EntrySidebar({
-  entry,
-  relatedEntries,
-  authenticated,
-  markdownUrl,
-}: EntrySidebarProps) {
+export function EntrySidebar({ entry, relatedEntries, authenticated }: EntrySidebarProps) {
   const hasStatusBadges =
     entry.status === 'draft' || entry.frontmatter.isPrivate || entry.frontmatter.needsHelp;
+
+  // Markdown snapshots only exist in S3 for published, non-private entries.
+  const markdownUrl =
+    entry.status === 'published' && !entry.frontmatter.isPrivate
+      ? `/browse/${entry.slug}.md`
+      : undefined;
 
   return (
     <div className="p-5 space-y-6 text-sm">

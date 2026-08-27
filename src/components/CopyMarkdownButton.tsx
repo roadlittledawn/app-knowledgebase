@@ -1,24 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check, ExternalLink } from 'lucide-react';
+import { Copy, Check, ExternalLink, X } from 'lucide-react';
 
 interface CopyMarkdownButtonProps {
   markdownUrl: string;
 }
 
 export function CopyMarkdownButton({ markdownUrl }: CopyMarkdownButtonProps) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'copied' | 'error'>('idle');
 
   async function handleCopy() {
     try {
       const res = await fetch(markdownUrl);
+      if (!res.ok) {
+        throw new Error(`Markdown fetch failed with status ${res.status}`);
+      }
       const text = await res.text();
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setStatus('copied');
     } catch (err) {
       console.error('Failed to copy markdown:', err);
+      setStatus('error');
+    } finally {
+      setTimeout(() => setStatus('idle'), 2000);
     }
   }
 
@@ -39,8 +44,10 @@ export function CopyMarkdownButton({ markdownUrl }: CopyMarkdownButtonProps) {
         title="Copy as Markdown"
         className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-[var(--color-border)] text-xs text-[var(--color-foreground-secondary)] hover:bg-[var(--color-surface)] transition-colors"
       >
-        {copied ? <Check size={12} /> : <Copy size={12} />}
-        {copied ? 'Copied' : 'Copy'}
+        {status === 'copied' && <Check size={12} />}
+        {status === 'error' && <X size={12} />}
+        {status === 'idle' && <Copy size={12} />}
+        {status === 'copied' ? 'Copied' : status === 'error' ? 'Failed' : 'Copy'}
       </button>
     </div>
   );
