@@ -129,19 +129,13 @@ function findAncestorsOfEntry(
 }
 
 export function FileExplorerNav({ tree, activeEntrySlug, onEntryClick }: FileExplorerNavProps) {
+  // Initial state must be derivable from props alone (tree + activeEntrySlug)
+  // so the first client render matches the server-rendered HTML exactly.
+  // localStorage is only readable client-side, so previously-expanded ids are
+  // merged in after mount below — reading them here would make the client's
+  // first render diverge from SSR and trigger a hydration mismatch.
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
-    let initial = new Set<string>();
-
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          initial = new Set(JSON.parse(stored));
-        }
-      } catch {
-        // ignore
-      }
-    }
+    const initial = new Set<string>();
 
     if (activeEntrySlug) {
       const ancestors = findAncestorsOfEntry(tree, activeEntrySlug);
@@ -153,6 +147,23 @@ export function FileExplorerNav({ tree, activeEntrySlug, onEntryClick }: FileExp
     return initial;
   });
 
+  // Merge previously-expanded ids from localStorage once hydration has
+  // completed, so a returning visitor's expand/collapse state still restores
+  // without affecting the server-matched initial render above.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return;
+      const storedIds: string[] = JSON.parse(stored);
+      const hasNewIds = storedIds.some((id) => !expandedIds.has(id));
+      if (hasNewIds) {
+        setExpandedIds((prev) => new Set([...prev, ...storedIds]));
+      }
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {
