@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Folder, FolderOpen, FileText } from 'lucide-react';
 import type { FileExplorerTreeNode } from '@/types/category';
-
-const STORAGE_KEY = 'nav-expanded-ids';
 
 interface FileExplorerNavProps {
   tree: FileExplorerTreeNode[];
@@ -95,7 +93,7 @@ function CategoryNode({
                     : 'hover:bg-[var(--color-surface-hover)] text-[var(--color-foreground-secondary)]'
                 }
               `}
-              style={{ paddingLeft: `${(level + 1) * 16 + 8}px` }}
+              style={{ paddingLeft: `${(level + 1) * 16 + 8 + 20}px` }}
             >
               <FileText
                 className={`w-3.5 h-3.5 flex-shrink-0 ${
@@ -129,38 +127,25 @@ function findAncestorsOfEntry(
 }
 
 export function FileExplorerNav({ tree, activeEntrySlug, onEntryClick }: FileExplorerNavProps) {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
-    let initial = new Set<string>();
-
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          initial = new Set(JSON.parse(stored));
-        }
-      } catch {
-        // ignore
-      }
-    }
-
+  const ancestorsOfActive = (): Set<string> => {
     if (activeEntrySlug) {
       const ancestors = findAncestorsOfEntry(tree, activeEntrySlug);
-      if (ancestors) {
-        ancestors.forEach((id) => initial.add(id));
-      }
+      if (ancestors) return new Set(ancestors);
     }
+    return new Set<string>();
+  };
 
-    return initial;
-  });
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(ancestorsOfActive);
 
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...expandedIds]));
-    } catch {
-      // ignore
-    }
-  }, [expandedIds]);
+  // Keep expansion context-aware: whenever the active entry changes, open exactly
+  // that entry's ancestor chain and nothing else. Adjusting state during render on a
+  // prop change (rather than in an effect) handles entry→entry navigation where the
+  // nav does not remount in the App Router — https://react.dev/learn/you-might-not-need-an-effect
+  const [prevActiveEntrySlug, setPrevActiveEntrySlug] = useState(activeEntrySlug);
+  if (activeEntrySlug !== prevActiveEntrySlug) {
+    setPrevActiveEntrySlug(activeEntrySlug);
+    setExpandedIds(ancestorsOfActive());
+  }
 
   const handleToggle = useCallback((id: string) => {
     setExpandedIds((prev) => {
