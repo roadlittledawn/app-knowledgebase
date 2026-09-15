@@ -14,9 +14,10 @@ export {
   Popover,
   Table,
   Tabs,
-  CodePlayground,
   useMDXComponents,
 } from '@/mdx-components';
+
+export { CodePlayground, type CodePlaygroundProps } from './CodePlayground';
 
 // Export the MDX renderer component
 export { MDXContent } from './MDXContent';
