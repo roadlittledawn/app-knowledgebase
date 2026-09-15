@@ -17,7 +17,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22+ required: the MDX pipeline test runs via node's native TypeScript
+          # stripping (--experimental-strip-types).
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -28,6 +30,9 @@ jobs:
 
       - name: Type check
         run: npm run type-check
+
+      - name: MDX / CodePlayground tests
+        run: npm run test:mdx
 
       - name: Build
         run: npm run build

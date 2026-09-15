@@ -11,7 +11,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "type-check": "tsc --noEmit",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",
+    "test:mdx": "tsx scripts/test/codeplayground.test.ts && node --experimental-strip-types --no-warnings scripts/test/mdx-pipeline.test.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
