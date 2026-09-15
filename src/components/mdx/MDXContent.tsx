@@ -25,9 +25,9 @@ import {
   Tab,
   TabList,
   TabPanel,
-  CodePlayground,
   Heading,
 } from '@/mdx-components';
+import { CodePlayground } from './CodePlayground';
 import type { ReactNode, ReactElement } from 'react';
 
 /**

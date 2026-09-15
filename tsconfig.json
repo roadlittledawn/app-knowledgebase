@@ -15,6 +15,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
+    // scripts/test/*.mts run under node's native type stripping, which requires
+    // explicit .ts extensions on relative imports. Safe here because noEmit.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
