@@ -188,7 +188,9 @@ export default async function EntryDetailPage({ params }: PageProps) {
       <ResizableLayout
         sidebar={<FileExplorerNav tree={categoryTree} activeEntrySlug={entry.slug} />}
       >
-        <div className="flex h-full min-h-0">
+        {/* data-entry-layout scopes OnThisPage lookups: ResizableLayout renders
+            children twice (desktop + mobile), so ids here are duplicated. */}
+        <div className="flex h-full min-h-0" data-entry-layout>
           <main
             id="entry-scroll-area"
             className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden"

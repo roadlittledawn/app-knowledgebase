@@ -56,13 +56,20 @@ export function OnThisPage({ showHeading = true }: OnThisPageProps) {
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
-    const target = document.getElementById(id);
+
+    // ResizableLayout renders the entry twice (desktop copy hidden below lg,
+    // mobile copy hidden at lg+), so ids like #entry-scroll-area and heading ids
+    // are duplicated. document.getElementById would return the first copy, which
+    // is display:none on mobile, and scrolling it does nothing. Resolve both
+    // within the copy of the layout this menu belongs to.
+    const root: ParentNode = e.currentTarget.closest('[data-entry-layout]') ?? document;
+    const target = root.querySelector<HTMLElement>(`article #${CSS.escape(id)}`);
     if (!target) return;
 
     const offset = 24;
     // The root layout also renders a <main>, so querySelector('main') would
     // return the wrong element. Target the specific scrollable article area by ID.
-    const scrollArea = document.getElementById('entry-scroll-area');
+    const scrollArea = root.querySelector<HTMLElement>('#entry-scroll-area');
     if (scrollArea) {
       // getBoundingClientRect() gives viewport-relative positions.
       // Subtract scrollArea's top to get position relative to the visible portion,
