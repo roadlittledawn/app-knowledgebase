@@ -86,6 +86,21 @@ async function main() {
     assert.ok(count >= 3, `expected at least 3 CodePlayground references, found ${count}`);
   });
 
+  log('\nMDX pipeline: JSX expression props');
+
+  await test('keeps numeric expression props (blockJS must be false)', async () => {
+    const { compiledSource } = await serializeMDX(
+      '<Heading level={2}>Rust is a good choice</Heading>\n\n<CardGrid columns={2}>x</CardGrid>'
+    );
+    assert.match(compiledSource, /level:\s*2/, 'level={2} was stripped');
+    assert.match(compiledSource, /columns:\s*2/, 'columns={2} was stripped');
+  });
+
+  await test('still blocks dangerous expressions', async () => {
+    // blockDangerousJS rejects the whole document rather than stripping the prop.
+    await assert.rejects(serializeMDX('<Card title={eval("1")}>x</Card>'), /eval\(\) calls/);
+  });
+
   finish('MDX pipeline');
 }
 
