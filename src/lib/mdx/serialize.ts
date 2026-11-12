@@ -99,6 +99,11 @@ export async function serializeMDX(
   const shikiTheme = theme === 'dark' ? 'github-dark' : 'github-light';
 
   const result = await serialize(source, {
+    // next-mdx-remote v6 defaults blockJS to true, which strips every JSX
+    // expression prop (e.g. level={2} → undefined). MDX here is admin-authored,
+    // so allow expressions; blockDangerousJS (default true) still blocks
+    // eval/Function/process/etc. See docs/mdx-numeric-props-bug.md.
+    blockJS: false,
     mdxOptions: {
       remarkPlugins: [remarkGfm],
       rehypePlugins: [
