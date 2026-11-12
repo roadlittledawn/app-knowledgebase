@@ -188,7 +188,9 @@ export default async function EntryDetailPage({ params }: PageProps) {
       <ResizableLayout
         sidebar={<FileExplorerNav tree={categoryTree} activeEntrySlug={entry.slug} />}
       >
-        <div className="flex h-full min-h-0">
+        {/* data-entry-layout scopes OnThisPage lookups: ResizableLayout renders
+            children twice (desktop + mobile), so ids here are duplicated. */}
+        <div className="flex h-full min-h-0" data-entry-layout>
           <main
             id="entry-scroll-area"
             className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden"
@@ -201,46 +203,46 @@ export default async function EntryDetailPage({ params }: PageProps) {
               <OnThisPage showHeading={false} />
             </CollapsibleSection>
 
-          <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
-            <header className="mb-6">
-              <h1 className="text-3xl font-bold text-[var(--color-foreground)]">
-                {entry.frontmatter.title}
-              </h1>
-              <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
-                Updated{' '}
-                {new Date(entry.updatedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </p>
-            </header>
+            <article className="mx-auto px-6 py-8 pb-32" style={{ maxWidth: '1000px' }}>
+              <header className="mb-6">
+                <h1 className="text-3xl font-bold text-[var(--color-foreground)]">
+                  {entry.frontmatter.title}
+                </h1>
+                <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
+                  Updated{' '}
+                  {new Date(entry.updatedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </p>
+              </header>
 
-            <EntryPageTools
-              markdownUrl={markdownUrl}
-              entryId={entry._id}
-              authenticated={authenticated}
-            />
+              <EntryPageTools
+                markdownUrl={markdownUrl}
+                entryId={entry._id}
+                authenticated={authenticated}
+              />
 
-            <div className="prose max-w-none mb-12">
-              {serializedMdx ? (
-                <MDXContent source={serializedMdx} />
-              ) : (
-                <div className="whitespace-pre-wrap text-[var(--color-foreground-secondary)]">
-                  {entry.body}
-                </div>
-              )}
-            </div>
+              <div className="prose max-w-none mb-12">
+                {serializedMdx ? (
+                  <MDXContent source={serializedMdx} />
+                ) : (
+                  <div className="whitespace-pre-wrap text-[var(--color-foreground-secondary)]">
+                    {entry.body}
+                  </div>
+                )}
+              </div>
 
-            <footer className="mt-12 pt-6 border-t border-[var(--color-border)]">
-              <Link
-                href="/browse"
-                className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
-              >
-                &larr; Back to Browse
-              </Link>
-            </footer>
-          </article>
+              <footer className="mt-12 pt-6 border-t border-[var(--color-border)]">
+                <Link
+                  href="/browse"
+                  className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
+                >
+                  &larr; Back to Browse
+                </Link>
+              </footer>
+            </article>
           </main>
 
           {/* Right sidebar — On This Page + metadata (xl+ only) */}
