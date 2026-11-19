@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TopNav } from '@/components/TopNav';
+import { AuthProvider } from '@/components/AuthProvider';
 import { MobileNavProvider } from '@/components/MobileNavContext';
 import { getThemeScript } from '@/lib/theme/theme-script';
 import './globals.css';
@@ -68,10 +69,13 @@ export default function RootLayout({
       </head>
       <body className="h-full flex flex-col overflow-x-hidden bg-[var(--color-background)] text-[var(--color-foreground)]">
         <ThemeProvider>
-          <MobileNavProvider>
-            <TopNav />
-            <main className="flex-1 flex flex-col min-h-0">{children}</main>
-          </MobileNavProvider>
+          {/* Read directly (not authSettings()) so builds without auth env, e.g. CI, still work. */}
+          <AuthProvider authBaseUrl={process.env.AUTH_BASE_URL ?? ''}>
+            <MobileNavProvider>
+              <TopNav />
+              <main className="flex-1 flex flex-col min-h-0">{children}</main>
+            </MobileNavProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

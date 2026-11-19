@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Upload, Search, Copy, FileText, Check, Code } from 'lucide-react';
 import type { IFileAttachment } from '@/types/file-attachment';
@@ -38,7 +39,7 @@ export function FilePickerPanel() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/files', { method: 'POST', body: formData });
+      const res = await authFetch('/api/files', { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setUploadError(data.error || 'Upload failed.');
@@ -67,7 +68,7 @@ export function FilePickerPanel() {
         search: searchValue.trim(),
         limit: '5',
       });
-      const res = await fetch(`/api/files?${params.toString()}`);
+      const res = await authFetch(`/api/files?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to search files');
       const data = await res.json();
       setFiles(data.files);

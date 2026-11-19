@@ -11,8 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { searchAtlas } from '@/lib/search/atlas';
 import { searchPinecone } from '@/lib/search/pinecone';
 import { mergeSearchResults, type MergedSearchResult } from '@/lib/search/merge';
@@ -34,18 +33,6 @@ interface SearchResponse {
   }>;
   total: number;
   mode: SearchMode;
-}
-
-/**
- * Check if user is authenticated
- */
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-
-  const payload = await verifyToken(token);
-  return payload !== null;
 }
 
 /**

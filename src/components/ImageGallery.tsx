@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Search, LayoutGrid, List } from 'lucide-react';
 import { ImageCard } from './ImageCard';
@@ -29,7 +30,7 @@ export function ImageGallery({ refreshTrigger, onSelectImage }: ImageGalleryProp
     try {
       const params = new URLSearchParams({ page: String(pageNum), limit: '20' });
       if (searchValue.trim()) params.set('search', searchValue.trim());
-      const res = await fetch(`/api/images?${params.toString()}`);
+      const res = await authFetch(`/api/images?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch images');
       const data = await res.json();
       setImages(data.images);

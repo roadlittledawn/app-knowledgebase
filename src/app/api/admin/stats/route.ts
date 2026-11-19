@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 
 interface RecentEntry {
   id: string;
@@ -39,21 +39,6 @@ interface AdminStatsResponse {
 }
 
 /**
- * Verify authentication for admin routes
- */
-async function verifyAuth(request: NextRequest): Promise<boolean> {
-  const cookieName = getAuthCookieName();
-  const token = request.cookies.get(cookieName)?.value;
-
-  if (!token) {
-    return false;
-  }
-
-  const payload = await verifyToken(token);
-  return payload !== null;
-}
-
-/**
  * GET /api/admin/stats
  *
  * Retrieves knowledgebase statistics including:
@@ -64,12 +49,11 @@ async function verifyAuth(request: NextRequest): Promise<boolean> {
  * - Skill level distribution
  */
 export async function GET(
-  request: NextRequest
+  _request: NextRequest
 ): Promise<NextResponse<AdminStatsResponse | { error: string }>> {
   try {
     // Check authentication
-    const isAuthenticated = await verifyAuth(request);
-    if (!isAuthenticated) {
+    if (!(await isAuthenticated())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

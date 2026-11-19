@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useRef } from 'react';
 import { Copy, Pencil, ExternalLink, Trash2, Check, RefreshCw, FileText } from 'lucide-react';
 import type { IFileAttachment } from '@/types/file-attachment';
@@ -32,7 +33,7 @@ export function FileCard({ file, variant = 'card', onDescriptionSaved, onDeleted
   async function handleSaveDesc() {
     setSaving(true);
     try {
-      const res = await fetch(`/api/files/${file._id}`, {
+      const res = await authFetch(`/api/files/${file._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: descValue }),
@@ -62,7 +63,7 @@ export function FileCard({ file, variant = 'card', onDescriptionSaved, onDeleted
       const formData = new FormData();
       formData.append('file', newFile);
 
-      const res = await fetch(`/api/files/${file._id}`, { method: 'PUT', body: formData });
+      const res = await authFetch(`/api/files/${file._id}`, { method: 'PUT', body: formData });
       if (res.ok) {
         const data = await res.json();
         onReplaced?.(data.file);
@@ -77,7 +78,7 @@ export function FileCard({ file, variant = 'card', onDescriptionSaved, onDeleted
     if (!confirm(`Delete "${file.filename}"? This cannot be undone.`)) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/files/${file._id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/files/${file._id}`, { method: 'DELETE' });
       if (res.ok) {
         onDeleted(file._id);
       }

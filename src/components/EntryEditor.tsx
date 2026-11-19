@@ -10,6 +10,7 @@
  * - Stacked on small screens
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { CategoryTreeNode } from '@/types/category';
@@ -553,7 +554,7 @@ function MetadataPanel({
 
   const handleCreateCategory = useCallback(
     async (name: string, parentId: string | null) => {
-      const res = await fetch('/api/categories', {
+      const res = await authFetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, parentId }),
@@ -653,13 +654,13 @@ function MetadataPanel({
                 : 'Private entries are not exported as Markdown'
             }
             onAdd={async () => {
-              const res = await fetch(`/api/entries/${entryId}/markdown`, { method: 'POST' });
+              const res = await authFetch(`/api/entries/${entryId}/markdown`, { method: 'POST' });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Failed to generate Markdown');
               onHasMarkdownChange(!!data.hasMarkdown);
             }}
             onRemove={async () => {
-              const res = await fetch(`/api/entries/${entryId}/markdown`, { method: 'DELETE' });
+              const res = await authFetch(`/api/entries/${entryId}/markdown`, { method: 'DELETE' });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Failed to remove Markdown');
               onHasMarkdownChange(!!data.hasMarkdown);
@@ -671,13 +672,13 @@ function MetadataPanel({
             eligible={status === 'published'}
             ineligibleReason="Publish the entry to enable"
             onAdd={async () => {
-              const res = await fetch(`/api/entries/${entryId}/pinecone`, { method: 'POST' });
+              const res = await authFetch(`/api/entries/${entryId}/pinecone`, { method: 'POST' });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Failed to index entry');
               onPineconeIndexedChange(!!data.pineconeId);
             }}
             onRemove={async () => {
-              const res = await fetch(`/api/entries/${entryId}/pinecone`, { method: 'DELETE' });
+              const res = await authFetch(`/api/entries/${entryId}/pinecone`, { method: 'DELETE' });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Failed to remove from index');
               onPineconeIndexedChange(!!data.pineconeId);

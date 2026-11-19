@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
 import type { IImage } from '@/types/image';
@@ -35,7 +36,7 @@ export function ImageUploader({ onUploadComplete }: ImageUploaderProps) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/images', { method: 'POST', body: formData });
+      const res = await authFetch('/api/images', { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Upload failed.');

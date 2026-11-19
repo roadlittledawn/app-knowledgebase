@@ -12,7 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { connectToDatabase } from '@/lib/db/connection';
 import { WritingConfig } from '@/lib/db/models/WritingConfig';
 import { searchPinecone } from '@/lib/search/pinecone';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { fetchDDSComponentDocs } from '@/lib/dds/fetchComponentDocs';
 import type { EntryFrontmatter } from '@/types/entry';
 
@@ -275,20 +275,9 @@ function truncateToTokens(text: string, maxTokens: number): string {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const cookieName = getAuthCookieName();
-    const token = request.cookies.get(cookieName)?.value;
-
-    if (!token) {
+    // Check authentication (proxy.ts also enforces this)
+    if (!(await isAuthenticated())) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });

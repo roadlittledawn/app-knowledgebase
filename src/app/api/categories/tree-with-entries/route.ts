@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { getCategoryTreeWithEntries } from '@/lib/db/queries/categories';
 import type { FileExplorerTreeNode } from '@/types/category';
 
@@ -14,9 +13,7 @@ interface ErrorResponse {
 
 export async function GET(): Promise<NextResponse<TreeResponse | ErrorResponse>> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(getAuthCookieName())?.value;
-    const authenticated = token ? (await verifyToken(token)) !== null : false;
+    const authenticated = await isAuthenticated();
 
     const tree = await getCategoryTreeWithEntries(authenticated);
     return NextResponse.json({ tree });

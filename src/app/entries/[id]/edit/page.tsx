@@ -9,6 +9,7 @@
  * - 6.2: Use react-resizable-panels for adjustable pane sizes
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -32,8 +33,8 @@ export default function EditEntryPage() {
       try {
         // Fetch entry and categories in parallel
         const [entryRes, categoriesRes] = await Promise.all([
-          fetch(`/api/entries/${entryId}`),
-          fetch('/api/categories/tree'),
+          authFetch(`/api/entries/${entryId}`),
+          authFetch('/api/categories/tree'),
         ]);
 
         if (!entryRes.ok) {
@@ -69,7 +70,7 @@ export default function EditEntryPage() {
   // Handle save - update existing entry
   const handleSave = useCallback(
     async (entryData: Partial<IEntry>) => {
-      const res = await fetch(`/api/entries/${entryId}`, {
+      const res = await authFetch(`/api/entries/${entryId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +96,7 @@ export default function EditEntryPage() {
 
   // Handle delete
   const handleDelete = useCallback(async () => {
-    const res = await fetch(`/api/entries/${entryId}`, {
+    const res = await authFetch(`/api/entries/${entryId}`, {
       method: 'DELETE',
     });
 

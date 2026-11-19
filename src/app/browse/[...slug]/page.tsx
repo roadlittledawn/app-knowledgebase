@@ -5,10 +5,9 @@
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { getCategoryTreeWithEntries } from '@/lib/db/queries/categories';
 import { serializeMDX } from '@/lib/mdx/serialize';
 import { EntrySidebar } from '@/components/EntrySidebar';
@@ -26,14 +25,6 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
-}
-
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-  const payload = await verifyToken(token);
-  return payload !== null;
 }
 
 async function getEntryBySlug(slug: string): Promise<IEntry | null> {

@@ -7,9 +7,9 @@
  * Requirement 7.8: Chat UI
  */
 
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { getAuthState, loginUrlFor } from '@/lib/auth';
+import { NoAccess } from '@/components/NoAccess';
 import { ChatInterface } from '@/components/ChatInterface';
 
 export const metadata = {
@@ -18,17 +18,13 @@ export const metadata = {
 };
 
 export default async function ChatPage() {
-  // Check authentication
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-
-  if (!token) {
-    redirect('/login?redirect=/chat');
+  // Check authentication (proxy.ts redirects first; this is defense in depth)
+  const auth = await getAuthState();
+  if (auth.status === 'anonymous') {
+    redirect(await loginUrlFor('/chat'));
   }
-
-  const payload = await verifyToken(token);
-  if (!payload) {
-    redirect('/login?redirect=/chat');
+  if (auth.status === 'forbidden') {
+    return <NoAccess email={auth.email} />;
   }
 
   return (
