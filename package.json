@@ -12,7 +12,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "type-check": "tsc --noEmit",
     "migrate": "tsx scripts/migrate.ts",
-    "test:mdx": "tsx scripts/test/codeplayground.test.ts && node --experimental-strip-types --no-warnings scripts/test/mdx-pipeline.test.mts"
+    "test:mdx": "tsx scripts/test/codeplayground.test.ts && node --experimental-strip-types --no-warnings scripts/test/mdx-pipeline.test.mts",
+    "test:auth": "tsx scripts/test/auth-session.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
