@@ -9,15 +9,8 @@ export { connectToDatabase, disconnectFromDatabase, isConnected } from './db/con
 export { Category, Entry } from './db/models';
 export type { CategoryDocument, CategoryModel, EntryDocument, EntryModel } from './db/models';
 
-// Authentication utilities
-export {
-  signToken,
-  verifyToken,
-  getAuthCookieName,
-  verifyPassword,
-  hashPassword,
-  type AuthPayload,
-} from './auth';
+// Authentication (server-side; browser code uses './auth/client')
+export { getSession, isAuthenticated, type Session } from './auth';
 
 // Theme utilities
 export {

@@ -22,7 +22,7 @@ This plan covers the complete architecture spec, including the writing agent sys
 | MDX              | next-mdx-remote                                     |
 | Editor           | @monaco-editor/react (dynamic import, SSR: false)   |
 | Syntax highlight | Shiki                                               |
-| Auth             | jsonwebtoken + bcryptjs, HTTP-only cookie           |
+| Auth             | clang-auth shared sign-on (was jsonwebtoken + bcryptjs; see `docs/clang-auth-migration.md`) |
 | Deployment       | Vercel (Fluid Compute enabled)                      |
 
 ---

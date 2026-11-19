@@ -6,6 +6,7 @@ import { EntryCard } from '@/components/EntryCard';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { MobileDrawer } from '@/components/MobileDrawer';
 import { useMobileNav } from '@/components/MobileNavContext';
+import { useAuth } from '@/components/AuthProvider';
 import type { FileExplorerTreeNode } from '@/types/category';
 import type { IEntry } from '@/types/entry';
 
@@ -16,6 +17,9 @@ interface EntriesResponse {
 
 function BrowsePageContent() {
   const { close } = useMobileNav();
+  // Re-fetch when sign-in state settles (e.g. after a silent token refresh),
+  // so private and draft entries appear without a reload.
+  const signedIn = useAuth().status === 'authenticated';
   const [tree, setTree] = useState<FileExplorerTreeNode[]>([]);
   const [recentEntries, setRecentEntries] = useState<Omit<IEntry, 'body'>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +48,7 @@ function BrowsePageContent() {
       }
     }
     fetchData();
-  }, []);
+  }, [signedIn]);
 
   if (loading) {
     return (

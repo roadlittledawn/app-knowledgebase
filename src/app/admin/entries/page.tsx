@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -14,9 +15,9 @@ export default function AdminEntriesPage() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch('/api/admin/stats');
+        const res = await authFetch('/api/admin/stats');
         if (res.status === 401) {
-          router.push('/login');
+          // authFetch has already sent the browser to sign in.
           return;
         }
         if (res.ok) {

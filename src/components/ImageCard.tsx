@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useState } from 'react';
 import { Copy, Pencil, ExternalLink, Trash2, Check } from 'lucide-react';
 import type { IImage } from '@/types/image';
@@ -30,7 +31,7 @@ export function ImageCard({ image, variant = 'card', onAltTextSaved, onDeleted, 
   async function handleSaveAlt() {
     setSaving(true);
     try {
-      const res = await fetch(`/api/images/${image._id}`, {
+      const res = await authFetch(`/api/images/${image._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ altText: altValue }),
@@ -49,7 +50,7 @@ export function ImageCard({ image, variant = 'card', onAltTextSaved, onDeleted, 
     if (!confirm(`Delete "${image.filename}"? This cannot be undone.`)) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/images/${image._id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/images/${image._id}`, { method: 'DELETE' });
       if (res.ok) {
         onDeleted(image._id);
       }

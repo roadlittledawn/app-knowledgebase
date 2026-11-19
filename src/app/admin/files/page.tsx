@@ -2,8 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
 import { FileGallery } from '@/components/FileGallery';
@@ -11,21 +11,20 @@ import { FileDetailPanel } from '@/components/FileDetailPanel';
 import type { IFileAttachment } from '@/types/file-attachment';
 
 export default function FilesPage() {
-  const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
   const [uploaderOpen, setUploaderOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedFile, setSelectedFile] = useState<IFileAttachment | null>(null);
 
   useEffect(() => {
-    fetch('/api/admin/stats').then((res) => {
+    authFetch('/api/admin/stats').then((res) => {
       if (res.status === 401) {
-        router.push('/login');
+        // authFetch has already sent the browser to sign in.
       } else {
         setAuthChecked(true);
       }
     });
-  }, [router]);
+  }, []);
 
   if (!authChecked) {
     return (

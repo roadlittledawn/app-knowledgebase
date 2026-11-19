@@ -12,6 +12,7 @@
  * - Delete empty categories
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -31,9 +32,9 @@ export default function AdminCategoriesPage() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch('/api/admin/stats');
+        const res = await authFetch('/api/admin/stats');
         if (res.status === 401) {
-          router.push('/login');
+          // authFetch has already sent the browser to sign in.
           return;
         }
         if (res.ok) {
@@ -52,7 +53,7 @@ export default function AdminCategoriesPage() {
   const fetchTree = useCallback(async () => {
     try {
       setTreeLoading(true);
-      const res = await fetch('/api/categories/tree');
+      const res = await authFetch('/api/categories/tree');
       if (res.ok) {
         const data = await res.json();
         setTree(data.tree);
@@ -78,7 +79,7 @@ export default function AdminCategoriesPage() {
       order?: number;
       description?: string;
     }): Promise<ICategory> => {
-      const res = await fetch('/api/categories', {
+      const res = await authFetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -104,7 +105,7 @@ export default function AdminCategoriesPage() {
         description?: string;
       }
     ): Promise<ICategory> => {
-      const res = await fetch(`/api/categories/${id}`, {
+      const res = await authFetch(`/api/categories/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -120,7 +121,7 @@ export default function AdminCategoriesPage() {
   );
 
   const handleDeleteCategory = useCallback(async (id: string): Promise<void> => {
-    const res = await fetch(`/api/categories/${id}`, {
+    const res = await authFetch(`/api/categories/${id}`, {
       method: 'DELETE',
     });
     if (!res.ok) {
@@ -131,7 +132,7 @@ export default function AdminCategoriesPage() {
 
   const handleReorderCategories = useCallback(
     async (parentId: string | null, orderedIds: string[]): Promise<void> => {
-      const res = await fetch('/api/categories/reorder', {
+      const res = await authFetch('/api/categories/reorder', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ parentId, orderedIds }),

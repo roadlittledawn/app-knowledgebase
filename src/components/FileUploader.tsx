@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
 import type { IFileAttachment } from '@/types/file-attachment';
@@ -31,7 +32,7 @@ export function FileUploader({ onUploadComplete }: FileUploaderProps) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/files', { method: 'POST', body: formData });
+      const res = await authFetch('/api/files', { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Upload failed.');

@@ -2,8 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
 import { ImageUploader } from '@/components/ImageUploader';
 import { ImageGallery } from '@/components/ImageGallery';
@@ -11,21 +11,20 @@ import { ImageDetailPanel } from '@/components/ImageDetailPanel';
 import type { IImage } from '@/types/image';
 
 export default function ImagesPage() {
-  const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
   const [uploaderOpen, setUploaderOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedImage, setSelectedImage] = useState<IImage | null>(null);
 
   useEffect(() => {
-    fetch('/api/admin/stats').then((res) => {
+    authFetch('/api/admin/stats').then((res) => {
       if (res.status === 401) {
-        router.push('/login');
+        // authFetch has already sent the browser to sign in.
       } else {
         setAuthChecked(true);
       }
     });
-  }, [router]);
+  }, []);
 
   if (!authChecked) {
     return (

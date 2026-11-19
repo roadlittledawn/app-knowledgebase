@@ -16,7 +16,7 @@ A personal knowledgebase web app for writing, storing, and browsing technical ar
 | AI | Anthropic SDK (`claude-opus-4-6`) |
 | Styling | Tailwind CSS v4 |
 | MDX | next-mdx-remote + `@roadlittledawn/docs-design-system-react` |
-| Auth | JWT + bcryptjs, HTTP-only cookie, single admin user |
+| Auth | [clang-auth](https://auth.clintonlangosch.com) shared sign-on: ES256 `ca_access` cookie verified via JWKS (`jose`) |
 | Deployment | Vercel (Fluid Compute) |
 
 ## Branch & Deploy Strategy
@@ -37,6 +37,7 @@ npm run type-check   # tsc --noEmit
 npm run format       # Prettier write
 npm run format:check # Prettier check
 npm run migrate      # Run content migration script
+npm run test:auth    # clang-auth token verification tests (tsx + node:assert)
 ```
 
 There are no tests. Do not add a test framework unless explicitly requested.
@@ -47,7 +48,7 @@ There are no tests. Do not add a test framework unless explicitly requested.
 src/
   app/                  # Next.js App Router pages & API routes
     api/
-      auth/             # login, logout
+      auth/me/          # current session for the UI (no DB call)
       entries/          # CRUD + listing
       categories/       # category tree + CRUD
       tags/             # unique tag aggregation
@@ -60,11 +61,11 @@ src/
     entries/            # new entry, entry detail, entry edit
     chat/               # chat UI
     admin/              # admin dashboard
-    login/
+    login/              # forwards to clang-auth sign-in (old links keep working)
   lib/
     db/                 # MongoDB connection + Mongoose models
     pinecone/           # Pinecone client + helpers
-    auth/               # JWT helpers
+    auth/               # clang-auth: token verification, getSession(), browser client
     mdx/                # MDX serialization helpers
   types/                # Shared TypeScript types
   components/           # Shared React components
@@ -104,7 +105,14 @@ Hierarchical taxonomy with `name`, `slug`, `parentId?`, `order`. Entries belong 
 
 ## Authentication
 
-Single-admin model. Credentials (`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`) come from env vars. JWT stored as HTTP-only cookie. Protected routes checked via middleware.
+Sign-in is handled by **clang-auth**, the shared auth service for `*.clintonlangosch.com` (app slug `kb`). Background and rollout: `docs/clang-auth-migration.md`.
+
+- The auth service sets an HttpOnly ES256 JWT cookie, `ca_access` (15 min), on `.clintonlangosch.com`. We verify it locally against the service's JWKS; no call per request.
+- "Authenticated" means the token's `apps.kb` includes `admin`. A valid token without that grant is **forbidden**: anonymous on public pages, `403` (never a redirect, it would loop) on protected ones.
+- **Server:** use `getSession()` / `isAuthenticated()` / `getAuthState()` from `@/lib/auth`. Don't read the cookie directly or add per-route auth helpers.
+- **`src/proxy.ts`** (must live in `src/`; a root-level file is silently ignored) gates protected pages (redirect to sign-in), protected APIs (`401`/`403`), and rejects cross-origin `POST/PUT/PATCH/DELETE` to `/api/*` (CSRF: sibling subdomains are same-site).
+- **Browser:** `useAuth()` (`AuthProvider` in the root layout) for UI state; it refreshes the token before expiry. Use `authFetch` from `@/lib/auth/client` for every call to a protected API (refreshes and retries on `401`). Sign out ends the session for every app on the domain.
+- **Local dev:** run a local clang-auth (`auth.localtest.me:4000`) and open **`http://kb.localtest.me:3003`** (`next dev -p 3003`), not `localhost`: the cookie is never sent to `localhost`. Vercel preview URLs (`*.vercel.app`) never get the cookie, so previews only show the public view.
 
 ## Environment Variables
 
@@ -115,12 +123,11 @@ MONGODB_URI
 PINECONE_API_KEY
 PINECONE_INDEX_NAME
 ANTHROPIC_API_KEY
-AUTH_SECRET
-ADMIN_USERNAME
-ADMIN_PASSWORD_HASH
+AUTH_BASE_URL      # https://auth.clintonlangosch.com (local: http://auth.localtest.me:4000)
+AUTH_APP_SLUG      # kb
 ```
 
-Never commit `.env.local`. All env vars are server-side runtime only (no `NEXT_PUBLIC_` vars in active use).
+Never commit `.env.local`. All env vars are server-side runtime only (no `NEXT_PUBLIC_` vars in active use; the root layout passes `AUTH_BASE_URL` to `AuthProvider` as a prop).
 
 ## Vercel Deployment
 
@@ -135,7 +142,7 @@ Never commit `.env.local`. All env vars are server-side runtime only (no `NEXT_P
 - **App Router only** — all routes use the Next.js 13+ App Router pattern (`page.tsx`, `route.ts`)
 - **Server Components by default** — add `"use client"` only when needed
 - **Streaming via SSE** — AI routes use Server-Sent Events, not `Response.json()`
-- **Dynamic rendering on auth-gated pages** — use `export const dynamic = 'force-dynamic'` on pages that check auth cookies
+- **Dynamic rendering on auth-gated pages** — use `export const dynamic = 'force-dynamic'` on pages that check the session
 - **Monaco editor** — loaded dynamically with `ssr: false`
 - **MDX rendering** — always use the DDS component map; do not use raw HTML elements for MDX content
 - **MDX expression props** — `next-mdx-remote` v6 defaults `blockJS: true`, which silently strips all JSX expression props (`level={2}` → `undefined`). `serializeMDX` sets `blockJS: false` (with `blockDangerousJS` still on) so `{2}`-style props work — do not remove it. See `docs/mdx-numeric-props-bug.md`.

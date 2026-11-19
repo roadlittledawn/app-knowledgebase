@@ -34,5 +34,8 @@ jobs:
       - name: MDX / CodePlayground tests
         run: npm run test:mdx
 
+      - name: Auth session tests
+        run: npm run test:auth
+
       - name: Build
         run: npm run build

@@ -12,7 +12,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "type-check": "tsc --noEmit",
     "migrate": "tsx scripts/migrate.ts",
-    "test:mdx": "tsx scripts/test/codeplayground.test.ts && node --experimental-strip-types --no-warnings scripts/test/mdx-pipeline.test.mts"
+    "test:mdx": "tsx scripts/test/codeplayground.test.ts && node --experimental-strip-types --no-warnings scripts/test/mdx-pipeline.test.mts",
+    "test:auth": "tsx scripts/test/auth-session.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -25,7 +26,6 @@
     "@roadlittledawn/docs-design-system-react": "^0.15.1",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/hast": "^3.0.4",
-    "bcryptjs": "^3.0.3",
     "install": "^0.13.0",
     "jose": "^6.2.2",
     "lucide-react": "^1.7.0",
@@ -48,7 +48,6 @@
     "yaml": "^2.8.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -8,10 +8,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 
 interface TagsResponse {
   tags: string[];
@@ -20,17 +19,6 @@ interface TagsResponse {
 
 interface ErrorResponse {
   error: string;
-}
-
-/**
- * Check if user is authenticated
- */
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-  const payload = await verifyToken(token);
-  return payload !== null;
 }
 
 /**

@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Search, LayoutGrid, List } from 'lucide-react';
 import { FileCard } from './FileCard';
@@ -29,7 +30,7 @@ export function FileGallery({ refreshTrigger, onSelectFile }: FileGalleryProps) 
     try {
       const params = new URLSearchParams({ page: String(pageNum), limit: '20' });
       if (searchValue.trim()) params.set('search', searchValue.trim());
-      const res = await fetch(`/api/files?${params.toString()}`);
+      const res = await authFetch(`/api/files?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch files');
       const data = await res.json();
       setFiles(data.files);

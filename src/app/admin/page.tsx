@@ -12,8 +12,8 @@
  * - 10.6: Accessible only to authenticated users
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ListFilter, FolderTree, Image as ImageIcon } from 'lucide-react';
 import { StatsPanel } from '@/components/StatsPanel';
@@ -43,7 +43,6 @@ interface AdminStats {
 }
 
 export default function AdminDashboard() {
-  const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,10 +50,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await authFetch('/api/admin/stats');
 
         if (response.status === 401) {
-          router.push('/login');
+          // authFetch has already sent the browser to sign in.
           return;
         }
 
@@ -72,7 +71,7 @@ export default function AdminDashboard() {
     }
 
     fetchStats();
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (

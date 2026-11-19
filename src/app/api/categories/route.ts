@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Category } from '@/lib/db/models/Category';
-import { getAuthCookieName, verifyToken } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import type { ICategory, CreateCategoryInput } from '@/types/category';
 
 interface CategoriesListResponse {
@@ -89,9 +89,7 @@ export async function POST(
   request: NextRequest
 ): Promise<NextResponse<CreateCategoryResponse | ErrorResponse>> {
   try {
-    const token = request.cookies.get(getAuthCookieName())?.value;
-    const payload = token ? await verifyToken(token) : null;
-    if (!payload) {
+    if (!(await isAuthenticated())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

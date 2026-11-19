@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
@@ -139,7 +140,7 @@ export function EntryManagementTable() {
   useEffect(() => {
     async function fetchFilterData() {
       try {
-        const [catRes, tagRes] = await Promise.all([fetch('/api/categories'), fetch('/api/tags')]);
+        const [catRes, tagRes] = await Promise.all([authFetch('/api/categories'), authFetch('/api/tags')]);
 
         if (catRes.ok) {
           const catData = await catRes.json();
@@ -182,7 +183,7 @@ export function EntryManagementTable() {
         if (tagFilter) params.set('tag', tagFilter);
         if (debouncedSearch) params.set('search', debouncedSearch);
 
-        const res = await fetch(`/api/entries?${params.toString()}`);
+        const res = await authFetch(`/api/entries?${params.toString()}`);
 
         if (!res.ok) {
           throw new Error(`Failed to fetch entries (${res.status})`);
@@ -231,7 +232,7 @@ export function EntryManagementTable() {
     setActionLoading(entry._id);
 
     try {
-      const res = await fetch(`/api/entries/${entry._id}`, {
+      const res = await authFetch(`/api/entries/${entry._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -259,7 +260,7 @@ export function EntryManagementTable() {
       setActionLoading(entry._id);
 
       try {
-        const res = await fetch(`/api/entries/${entry._id}`, {
+        const res = await authFetch(`/api/entries/${entry._id}`, {
           method: 'DELETE',
         });
 

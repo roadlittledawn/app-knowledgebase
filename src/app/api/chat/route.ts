@@ -13,7 +13,7 @@ import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
 import { searchPinecone } from '@/lib/search/pinecone';
 import { getCategoryPath } from '@/lib/db/queries/categories';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 
 // Set maxDuration for Vercel Fluid Compute (Requirement 16.3)
 export const maxDuration = 300;
@@ -95,20 +95,9 @@ Use the above articles as context to answer the user's question. Reference speci
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const cookieName = getAuthCookieName();
-    const token = request.cookies.get(cookieName)?.value;
-
-    if (!token) {
+    // Check authentication (proxy.ts also enforces this)
+    if (!(await isAuthenticated())) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
