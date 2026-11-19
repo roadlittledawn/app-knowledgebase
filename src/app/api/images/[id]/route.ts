@@ -6,21 +6,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Image } from '@/lib/db/models/Image';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { deleteFromS3 } from '@/lib/s3';
 import type { IImage } from '@/types/image';
 import type { ImageDocument } from '@/lib/db/models/Image';
-
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-  const payload = await verifyToken(token);
-  return payload !== null;
-}
 
 function transformImage(doc: ImageDocument): IImage {
   return {

@@ -5,11 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
 import { Category } from '@/lib/db/models/Category';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import type { IEntry, EntryFrontmatter } from '@/types/entry';
 import type { EntryDocument } from '@/lib/db/models/Entry';
 import { upsertEntryVector, isPineconeConfigured } from '@/lib/pinecone';
@@ -67,17 +66,6 @@ async function generateUniqueSlug(baseSlug: string, excludeId?: string): Promise
       throw new Error('Could not generate unique slug after 100 attempts');
     }
   }
-}
-
-/**
- * Check if user is authenticated
- */
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-  const payload = await verifyToken(token);
-  return payload !== null;
 }
 
 /**

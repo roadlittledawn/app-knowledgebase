@@ -7,6 +7,8 @@
  * Requirements:
  * - 12.3: Provide a ThemeToggle component accessible from the top navigation
  * - Include links to Browse, Chat, Admin (when authenticated)
+ * - Sign in / Sign out via clang-auth (signing out ends the session for every
+ *   *.clintonlangosch.com app)
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -22,10 +24,13 @@ import {
   Settings,
   FilePlus2,
   Search,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
 import { useMobileNav } from './MobileNavContext';
+import { useAuth } from './AuthProvider';
 
 interface TopNavProps {
   className?: string;
@@ -33,27 +38,12 @@ interface TopNavProps {
 
 export function TopNav({ className = '' }: TopNavProps) {
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { status, signIn, signOut } = useAuth();
+  const isLoading = status === 'loading';
+  const isAuthenticated = status === 'authenticated';
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { open } = useMobileNav();
-
-  // Check authentication status on mount and when pathname changes
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        // Try to fetch admin stats - if it succeeds, user is authenticated
-        const res = await fetch('/api/admin/stats', { method: 'GET' });
-        setIsAuthenticated(res.ok);
-      } catch {
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    checkAuth();
-  }, [pathname]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -164,6 +154,22 @@ export function TopNav({ className = '' }: TopNavProps) {
               </Link>
             )}
 
+            {!isLoading && (
+              <button
+                type="button"
+                onClick={() => (isAuthenticated ? void signOut() : signIn())}
+                title={
+                  isAuthenticated
+                    ? 'Signs you out of every clintonlangosch.com app'
+                    : 'Sign in at auth.clintonlangosch.com'
+                }
+                className={`inline-flex items-center gap-1.5 cursor-pointer ${linkClasses('/__auth')}`}
+              >
+                {isAuthenticated ? <LogOut className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                {isAuthenticated ? 'Sign out' : 'Sign in'}
+              </button>
+            )}
+
             <ThemeToggle />
           </div>
 
@@ -244,6 +250,20 @@ export function TopNav({ className = '' }: TopNavProps) {
                       New Entry
                     </Link>
                   </>
+                )}
+                {!isLoading && (
+                  <button
+                    type="button"
+                    className={`w-full flex items-center gap-1.5 px-4 py-2 cursor-pointer ${linkClasses('/__auth')}`}
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      if (isAuthenticated) void signOut();
+                      else signIn();
+                    }}
+                  >
+                    {isAuthenticated ? <LogOut className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                    {isAuthenticated ? 'Sign out' : 'Sign in'}
+                  </button>
                 )}
               </div>
             )}

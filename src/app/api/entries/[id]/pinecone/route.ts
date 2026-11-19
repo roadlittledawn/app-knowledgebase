@@ -9,10 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { Entry } from '@/lib/db/models/Entry';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { upsertEntryVector, deleteEntryVector, isPineconeConfigured } from '@/lib/pinecone';
 import type { IEntry } from '@/types/entry';
 import type { EntryDocument } from '@/lib/db/models/Entry';
@@ -28,14 +27,6 @@ interface ErrorResponse {
 }
 
 type RouteParams = { params: Promise<{ id: string }> };
-
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-  const payload = await verifyToken(token);
-  return payload !== null;
-}
 
 function isValidObjectId(id: string): boolean {
   return mongoose.Types.ObjectId.isValid(id);

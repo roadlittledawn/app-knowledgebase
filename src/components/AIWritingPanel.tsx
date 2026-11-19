@@ -13,6 +13,7 @@
  * - 8.11: Provide an Apply button to insert agent output into the Monaco editor
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useCallback } from 'react';
 import type { EntryFrontmatter } from '@/types/entry';
 import { Search, Sparkles, PenLine, Tags, Pin, LayoutTemplate, Send } from 'lucide-react';
@@ -134,7 +135,7 @@ export function AIWritingPanel({ body, frontmatter, selection, onApply }: AIWrit
       setActiveArtifactId(artifactId);
 
       try {
-        const response = await fetch('/api/ai/writing-agent', {
+        const response = await authFetch('/api/ai/writing-agent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

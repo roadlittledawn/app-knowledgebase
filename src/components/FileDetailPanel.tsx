@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
 import { X, ExternalLink, Download } from 'lucide-react';
 import Link from 'next/link';
@@ -31,7 +32,7 @@ export function FileDetailPanel({ file, onClose }: FileDetailPanelProps) {
       setLoadingEntries(true);
       setEntriesError(null);
       try {
-        const res = await fetch(`/api/files/${file!._id}/entries`);
+        const res = await authFetch(`/api/files/${file!._id}/entries`);
         const data = await res.json();
         if (!cancelled) setEntries(data.entries || []);
       } catch {

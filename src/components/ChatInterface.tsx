@@ -9,6 +9,7 @@
  * Requirement 7.8: Chat UI components
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useCallback } from 'react';
 import { MessageList, type ChatMessage } from './MessageList';
 import { ChatInput } from './ChatInput';
@@ -50,7 +51,7 @@ function ChatInterfaceInner({ initialMessages = [] }: ChatInterfaceProps) {
         }));
 
         // Make SSE request
-        const response = await fetch('/api/chat', {
+        const response = await authFetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

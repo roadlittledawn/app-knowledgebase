@@ -7,21 +7,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { connectToDatabase } from '@/lib/db/connection';
 import { FileAttachment } from '@/lib/db/models/FileAttachment';
-import { verifyToken, getAuthCookieName } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/auth';
 import { deleteFromS3, overwriteFileInS3 } from '@/lib/s3';
 import type { IFileAttachment } from '@/types/file-attachment';
 import type { FileAttachmentDocument } from '@/lib/db/models/FileAttachment';
-
-async function isAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  if (!token) return false;
-  const payload = await verifyToken(token);
-  return payload !== null;
-}
 
 function transformFile(doc: FileAttachmentDocument): IFileAttachment {
   return {

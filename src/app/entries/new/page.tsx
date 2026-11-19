@@ -9,6 +9,7 @@
  * - 6.2: Use react-resizable-panels for adjustable pane sizes
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -26,7 +27,7 @@ export default function NewEntryPage() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch('/api/categories/tree');
+        const res = await authFetch('/api/categories/tree');
         if (!res.ok) throw new Error('Failed to fetch categories');
         const data = await res.json();
         setCategories(data.tree);
@@ -42,7 +43,7 @@ export default function NewEntryPage() {
   // Handle save - create new entry
   const handleSave = useCallback(
     async (entryData: Partial<IEntry>) => {
-      const res = await fetch('/api/entries', {
+      const res = await authFetch('/api/entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Upload, Search, Copy, FileImage, Check } from 'lucide-react';
 import type { IImage } from '@/types/image';
@@ -46,7 +47,7 @@ export function ImagePickerPanel() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/images', { method: 'POST', body: formData });
+      const res = await authFetch('/api/images', { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setUploadError(data.error || 'Upload failed.');
@@ -77,7 +78,7 @@ export function ImagePickerPanel() {
         search: searchValue.trim(),
         limit: '5' // Only show first 5 matches
       });
-      const res = await fetch(`/api/images?${params.toString()}`);
+      const res = await authFetch(`/api/images?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to search images');
       const data = await res.json();
       setImages(data.images);

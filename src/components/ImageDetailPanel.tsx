@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth/client';
 import { useEffect, useState } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +33,7 @@ export function ImageDetailPanel({ image, onClose }: ImageDetailPanelProps) {
       setLoadingEntries(true);
       setEntriesError(null);
       try {
-        const res = await fetch(`/api/images/${image!._id}/entries`);
+        const res = await authFetch(`/api/images/${image!._id}/entries`);
         const data = await res.json();
         if (!cancelled) setEntries(data.entries || []);
       } catch {

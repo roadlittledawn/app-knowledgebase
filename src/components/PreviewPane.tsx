@@ -10,6 +10,7 @@
  * - 6.5: Render preview using the same DDS component map as entry detail pages
  */
 
+import { authFetch } from '@/lib/auth/client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { MDXContent } from './mdx/MDXContent';
@@ -50,7 +51,7 @@ export function PreviewPane({ mdx }: PreviewPaneProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/preview', {
+      const response = await authFetch('/api/preview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

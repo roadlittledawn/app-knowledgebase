@@ -1,6 +1,6 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getAuthCookieName, verifyToken } from '@/lib/auth';
+import { getAuthState, loginUrlFor } from '@/lib/auth';
+import { NoAccess } from '@/components/NoAccess';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,12 +9,13 @@ interface AdminLayoutProps {
 }
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(getAuthCookieName())?.value;
-  const payload = token ? await verifyToken(token) : null;
-
-  if (!payload) {
-    redirect('/login');
+  // proxy.ts redirects first (with the exact URL); this is defense in depth.
+  const auth = await getAuthState();
+  if (auth.status === 'anonymous') {
+    redirect(await loginUrlFor('/admin'));
+  }
+  if (auth.status === 'forbidden') {
+    return <NoAccess email={auth.email} />;
   }
 
   return children;
